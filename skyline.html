@@ -1,0 +1,3843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+	<!-- Shared GA4 / Roll-Up Setup -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-RRKVDP5KDS"></script>
+	<script>
+  		// Make sure dataLayer is declared only once
+  		window.dataLayer = window.dataLayer || [];
+  		function gtag(){dataLayer.push(arguments);}
+  		// Initialize gtag
+  		gtag('js', new Date());
+  		// --- Existing page tag  or property ---
+  		gtag('config', 'G-RRKVDP5KDS', {
+    			'send_page_view': true
+  		});
+		// --- Roll-up property ---
+  		gtag('config', 'G-YCCBZ2S3Y1', {
+    			'send_page_view': true,
+    			'tool_name': 'SkylineRNAseq',     // descriptive label
+    			'hostname': window.location.hostname,
+    			'linker': {
+      			'domains': ['immgen.org','cbdm.connect.hms.harvard.edu','rstats.immgen.org','shiny.immgen.org']  // list all domains for cross-domain tracking
+    			}
+  		});
+	</script>
+	
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	
+	<title>Gene Skyline</title>
+	<link rel="icon" type="image/x-icon" href="images/favicon.ico">
+	
+	<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+	<script src="https://code.jquery.com/jquery-latest.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<!-- D3.js -->
+	<script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
+	<!-- Treeview -->
+	<script src="//cdn.jsdelivr.net/npm/jquery.fancytree@2.27/dist/jquery.fancytree-all-deps.min.js"></script>
+	<!-- Autocompletion -->
+	<script src="resources/typeahead.js/typeahead.bundle.min.js" type="text/javascript"></script>
+	<!-- PNG and PDF generation -->
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/canvg/dist/browser/canvg.min.js"></script>
+	<script type="text/javascript" src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+	<script type="text/javascript" src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+	<!-- Bootstrap-select -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.7/dist/js/bootstrap-select.min.js"></script>
+	<!-- TYPED.JS
+	<script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script> -->
+	
+    <!-- Bootstrap JS -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<!-- Bootstrap-select -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.7/dist/css/bootstrap-select.min.css">
+	<!-- Treeview -->
+	<link href="//cdn.jsdelivr.net/npm/jquery.fancytree@2.27/dist/skin-win8/ui.fancytree.min.css" rel="stylesheet">
+	<!-- Font Awesome icons -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<!-- Custom CSS -->
+	<link rel="stylesheet" type="text/css" href="./skyline.css">
+			
+</head>
+
+<body>
+
+	<!-- Google Tag Manager (noscript) -->
+	<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MJTPRGT"
+	height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+	<!-- End Google Tag Manager (noscript) -->
+
+	<div id="tooltip" class="hidden">
+		<p id="tooltip_population_row"><strong>Population: </strong><span id="population"></span></p>
+        <p id="tooltip_expr_row"><strong>Expression Value: </strong><span id="expr_value" style="color:red;font-weight:bold;"></span></p>
+        <p id="tooltip_long_name_row"><strong>Long Name: </strong><span id="long_name"></span></p>
+        <p id="tooltip_desc_row"><strong>Description: </strong><span id="desc"></span></p>
+        <p id="tooltip_author_row"><strong>Author: </strong><span id="author"></span></p>
+        <p id="tooltip_number_row"><strong>Number of Samples: </strong><span id="number_of_sample"></span></p>
+    </div>
+    <div id="tooltip_y_axis" class="hidden">
+		<p id="tooltip_y_axis_population_row"><strong>Population: </strong><span id="population_y_axis"></span></p>
+       	<p id="tooltip_y_axis_long_name_row"><strong>Long Name: </strong><span id="long_name_y_axis"></span></p>
+       	<p id="tooltip_y_axis_desc_row"><strong>Description: </strong><span id="desc_y_axis"></span></p>
+       	<p id="tooltip_y_axis_author_row"><strong>Author: </strong><span id="author_y_axis"></span></p>
+       	<p id="tooltip_y_axis_number_row"><strong>Number of Samples: </strong><span id="number_of_sample_y_axis"></span></p>
+    </div>
+    <div id="tooltip_legend_label" class="hidden">
+		<p><strong><span id="legend_label"></span></strong></p>
+    </div>
+    <div id="tooltip_legend" class="hidden">
+		<p><strong><span id="level"></span>:</strong>&nbsp;&nbsp;<span id="level_range" style="color:red;font-weight:bold;"></span></p>
+    </div>
+       
+    <div id="AlertModal_genesymbol" class="modal fade" role="dialog" aria-labelledby="AlertModal_genesymbol_Label" aria-hidden="true">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="AlertModal_genesymbol_Label">Alert</h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body">
+	        <p>Sorry! The gene symbol can NOT be found in this data group.</p>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	
+	<div id="AlertModal_population" class="modal fade" role="dialog" aria-labelledby="AlertModal_population_Label" aria-hidden="true">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="AlertModal_population_Label">Alert</h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body">
+	        <p>Please select at least one population!</p>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+        
+	<div id="AlertModal_sorting_info" class="modal fade" role="dialog" aria-labelledby="AlertModal_sorting_info_Label" aria-hidden="true">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="AlertModal_sorting_info_Label">Alert</h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body">
+	        <p>Sorry! The sorting information is NOT available.</p>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+        
+	<div id="AlertModal_IE_save_image" class="modal fade" role="dialog" aria-labelledby="AlertModal_IE_save_image_Label" aria-hidden="true">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="AlertModal_IE_save_image_Label">Alert</h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body">
+	        <p>Sorry! Internet Explorer does not support the download function. Please right-click the figure and choose 'Save picture as'.</p>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	
+	<div id="AlertModal_IE_save_pdf" class="modal fade" role="dialog" aria-labelledby="AlertModal_IE_save_pdf_Label" aria-hidden="true">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="AlertModal_IE_save_pdf_Label">Alert</h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body">
+	        <p>Sorry! Internet Explorer does not support the download function. Please try Chrome or Firefox.</p>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	
+	<div class="modal fade" id="EmailModal" role="dialog" aria-labelledby="EmailModal_Label" aria-hidden="true">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="EmailModal_Label">Send Current Plot by Email</h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body">
+	        <form name="sendMail" id="sendMailForm">
+	          <div class="form-group">
+	            <label for="sender_email" class="col-form-label">From (required):</label>
+	            <input type="email" class="form-control" id="from_email" placeholder="Email Address" required>
+	          </div>
+	          <div class="form-group">
+	            <label for="email" class="col-form-label">To (required; separated by commas if multiple emails):</label>
+	            <input type="email" class="form-control" id="to_email" placeholder="Email Address(es)" multiple required>
+	          </div>
+	          <div class="form-group">
+	            <label for="message-text" class="col-form-label">Message (optional):</label>
+	            <textarea class="form-control" id="message-text" placeholder="Here is a Gene Skyline plot from ImmGen."></textarea>
+	          </div>
+	          <!-- Notifications for 'error' Or 'successfully'-->
+	          <div class="col-md-12 mailResponse" style="display:none;">
+	            <div class="alert alert-dismissible" role="alert">
+	              <p class="mailResponseText"></p>
+	            </div>
+	          </div>
+		  <button type="submit" class="btn btn-primary" id="send_email">Send Email</button>
+	        </form>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="close_email_form">Close</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	
+	<div class="modal fade" id="ChatGPTModal" role="dialog" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="ChatGPTModal_Label" aria-hidden="true">
+	  <div class="modal-dialog modal-lg modal-dialog-centered" id="chatgpt_modal_dialog" style="max-width: 50%;" role="document">
+	    <div class="modal-content">
+        <div class="modal-header d-flex justify-content-between align-items-start" style="position: relative;">
+          <div class="w-100">
+            <h5 class="modal-title mb-2" id="ChatGPTModal_Label">Gene Annotation from AI</h5>
+            <p id="chatgpt_caution" style="font-size:15px; color:red; display:none;">CAUTION: This is a work in progress, and the output may contain whopping errors, but it is getting better. Please verify before you trust. Thanks for helping us explore this by answering the poll below.</p>
+            <div class="d-flex justify-content-center mt-2">
+					<div class="ai-option-selection border rounded p-2" style="background-color: #f8f9fa; max-width: 560px;">
+						<div class="d-flex justify-content-center align-items-center flex-wrap">
+							<label class="form-label mb-0 mr-3" style="font-size: 1rem; font-weight: bold;">Please select the AI model:</label>
+							<div class="form-check form-check-inline mr-3">
+								<input class="form-check-input" type="radio" name="ai_option" id="ai_option_chatgpt" value="chatgpt">
+								<label class="form-check-label" style="font-size: 0.95rem;" for="ai_option_chatgpt">Use ChatGPT</label>
+							</div>
+							<div class="form-check form-check-inline mr-3">
+								<input class="form-check-input" type="radio" name="ai_option" id="ai_option_claude" value="claude">
+								<label class="form-check-label" style="font-size: 0.95rem;" for="ai_option_claude">Use Claude</label>
+							</div>
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" name="ai_option" id="ai_option_both" value="both">
+								<label class="form-check-label" style="font-size: 0.95rem;" for="ai_option_both">Use Both</label>
+							</div>
+						</div>
+					</div>
+				</div>
+          </div>
+          <button type="button" class="close ml-3" data-dismiss="modal" aria-label="Close" id="chatgpt_header_close_btn" style="position: absolute; top: 12px; right: 16px; z-index: 1050;">
+            <span aria-hidden="true" style="font-size: 1.5rem;">&times;</span>
+          </button>
+        </div>     
+	      <div class="modal-body">
+	      	<div class="row">
+            	<div class="col-md-12 form-group text-right">
+                	<button type="button" id="chatgpt_save_history" class="btn btn-outline-dark btn-sm ml-2">Save History</button>
+                </div>
+            </div>
+	      	<div id="chatgpt_panel" style="max-height: 32vh; overflow-y: auto; display: flex; flex-direction: column-reverse;">
+	      	</div>
+	      	<div class="d-flex justify-content-center">
+	          <span id="chatgpt_spinner_followup" style="text-align:center"></span>
+	        </div>
+			<hr>
+			 
+		<!-- Refine Answer Section -->
+		<div class="row mb-2 mx-3">
+			<div class="col-12">
+				<h6 class="mb-2">Do you want to refine this answer?</h6>
+			</div>
+		</div>
+		
+		<!-- Input Form -->
+		<div class="row mb-3 mx-3">
+			<div class="col-10">
+				<div class="input-group">
+					<input type="text" class="form-control" id="chat_input_form" placeholder="Type your own prompt here">
+					<span class="input-group-append">
+						<button class="btn btn-outline-secondary border-left-0 border" type="button" onclick="document.getElementById('chat_input_form').value = ''"><i class="fa fa-times"></i></button>
+					</span>
+				</div>
+			</div>
+			<div class="col-2">
+				<button type="submit" class="btn btn-primary" id="chat_input_send_btn">Send 
+					<svg xmlns="https://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16">
+						<path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471z"/>
+					</svg>
+				</button>
+			</div>
+		</div>
+		
+		<!-- Example Prompts -->
+		<div class="row mx-3" id="follow_up_questions">
+			<div class="col-12">
+				<h6 class="mb-2">Example Prompts:</h6>
+				<div class="row justify-content-center" data-toggle="buttons" id="follow_up_list">
+					<!-- First Row -->
+					<div class="col-6 mb-0">
+						<label class="btn btn-light btn-sm w-100 text-left" style="cursor:pointer;height:auto;padding:6px 8px;">
+							<input type="radio" name="follow_up_list_options" autocomplete="off" value="question_1" style="display:none;">
+							<i class="fa fa-info-circle" aria-hidden="true"></i>&nbsp; What is the role of this gene in myeloid cells?
+						</label>
+					</div>
+					<div class="col-6 mb-0">
+						<label class="btn btn-light btn-sm w-100 text-left" style="cursor:pointer;height:auto;padding:6px 8px;">
+							<input type="radio" name="follow_up_list_options" autocomplete="off" value="question_4" style="display:none;">
+							<i class="fa fa-info-circle" aria-hidden="true"></i>&nbsp; What is the role of this gene in innate lymphoid cells?
+						</label>
+					</div>
+					<!-- Second Row -->
+					<div class="col-6 mb-0">
+						<label class="btn btn-light btn-sm w-100 text-left" style="cursor:pointer;height:auto;padding:6px 8px;">
+							<input type="radio" name="follow_up_list_options" autocomplete="off" value="question_2" style="display:none;">
+							<i class="fa fa-info-circle" aria-hidden="true"></i>&nbsp; Please show me the genes significantly regulated by this gene.
+						</label>
+					</div>
+					<div class="col-6 mb-0">
+						<label class="btn btn-light btn-sm w-100 text-left" style="cursor:pointer;height:auto;padding:6px 8px;">
+							<input type="radio" name="follow_up_list_options" autocomplete="off" value="question_3" style="display:none;">
+							<i class="fa fa-info-circle" aria-hidden="true"></i>&nbsp; What are the applications of this gene in therapy and any disease linked to this gene?
+						</label>
+					</div>
+				</div>
+			</div>
+		</div>
+            
+            <hr>
+            <div class="row mx-3" id="ChatGPTModal_survey">
+            	<div class="col-12">
+            		<h6 class="mb-2">Poll: Was the AI answer useful?</h6>
+            		<div class="d-flex flex-wrap mb-3" style="gap: 1rem;">
+            			<div class="form-check form-check-inline">
+            				<input class="form-check-input" type="radio" name="SuveryOptions" id="Options1" value="Useful">
+            				<label class="form-check-label" for="Options1">Useful</label>
+            			</div>
+            			<div class="form-check form-check-inline">
+            				<input class="form-check-input" type="radio" name="SuveryOptions" id="Options2" value="Too little information">
+            				<label class="form-check-label" for="Options2">Too little information</label>
+            			</div>
+            			<div class="form-check form-check-inline">
+            				<input class="form-check-input" type="radio" name="SuveryOptions" id="Options3" value="Too vague">
+            				<label class="form-check-label" for="Options3">Too vague</label>
+            			</div>
+            			<div class="form-check form-check-inline">
+            				<input class="form-check-input" type="radio" name="SuveryOptions" id="Options4" value="Small factual mistakes">
+            				<label class="form-check-label" for="Options4">Small factual mistakes</label>
+            			</div>
+            			<div class="form-check form-check-inline">
+            				<input class="form-check-input" type="radio" name="SuveryOptions" id="Options5" value="Dangerous mistakes">
+            				<label class="form-check-label" for="Options5">Dangerous mistakes</label>
+            			</div>
+            		</div>
+            		<div id="ChatGPTModal_comments">
+            			<label for="suggestion_form" class="form-label">Comments (Please specify the problem and provide your suggestion if possible):</label>
+            			<textarea class="form-control" id="suggestion_form" rows="1"></textarea>
+            		</div>
+            	</div>
+			</div>			
+	      </div>
+	      <div class="modal-footer" style="justify-content: center">
+	        <button type="button" id="ChatGPTModal_survey_submit_btn" class="btn btn-primary" data-toggle="modal">Submit</button>
+	        <button type="button" id="ChatGPTModal_survey_close_btn" class="btn btn-secondary" data-toggle="modal">Close</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	
+	<div id="AlertModal_survey" class="modal fade" role="dialog" aria-labelledby="AlertModal_survey_Label" aria-hidden="true">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="AlertModal_survey_Label">Alert</h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body">
+	        <p>Please provide your feedback. We sincerely appreciate your help.</p>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	
+	<div class="form-group text-center"><img src="images/RNAseqskylineheaderOct19.svg" class="img-fluid" alt="Responsive image" width="50%"></div>
+	
+	<hr id="hr" style="width:95%;">
+	
+	<div class="container-fluid" style="width:95%">
+	  <div class="row">
+	    <div class="col-12 col-lg-4">
+	      <div class="card border-0 shadow p-3 mb-5 bg-white rounded">
+	        <div class="card-body">
+	          <form>
+	          
+    		    <div class="form-group row">
+	              <label class="col-form-label col-12 col-lg-4" for="rnaseq_datagroup_list"><b>Data Group:</b></label>
+	                <select id="rnaseq_datagroup_list" class="selectpicker show-tick col-12 col-lg-8" data-width="100%" data-container="body">
+	                  <option value="ImmGen ULI RNASeq">ImmGen ULI RNASeq</option>
+                      <option value="ImmGen MNP OpenSource">ImmGen MNP OpenSource</option>
+                      <option value="ImmGen CGC">ImmGen CGC Cytokines</option>
+                      <option value="ImmGen Cytokines Inflammatory">ImmGen Inflammatory Cytokines</option>
+                      <option value="immgenT Pseudobulk">immgenT Pseudobulk</option>
+	                </select>
+    		    </div>
+	            
+	            <div class="form-group row">
+	              <label class="col-form-label col-12 col-lg-4" for="rnaseq_population_list"><b>Populations:</b></label>
+	              	<div class="col-12 col-lg-8 btn-group-vertical btn-group-toggle" data-toggle="buttons" id="rnaseq_population_list">
+    		          <label class="btn btn-light active" style="cursor:pointer">
+    		            <input type="radio" autocomplete="off" id="ref_pops" value="Reference populations" checked> Reference populations
+    		          </label>
+    		          <label class="btn btn-light" style="cursor:pointer">
+    		            <input type="radio" autocomplete="off" id="all_pops" value="Select the populations of interest"> Select the populations by cell types
+    		          </label>
+    		          <div id="rnaseq_population_tree" style="display: none; width:100%"></div>
+    		          <div id="rnaseq_population_OSMNP_tree" style="display: none; width:100%"></div>
+    		          <div id="rnaseq_population_CGC_tree" style="display: none; width:100%"></div>
+    		          <div id="rnaseq_population_IC_tree" style="display: none; width:100%"></div>
+    		          <div id="rnaseq_population_iTP_tree" style="display: none; width:100%"></div>
+    		          <label class="btn btn-light" id="all_pops_by_organ_label" style="cursor:pointer">
+    		            <input type="radio" autocomplete="off" id="all_pops_by_organ" value="Select the populations of interest by organs"> Select the populations by organs
+    		          </label>
+    		          <div id="rnaseq_population_tree_by_organ" style="display: none; width:100%"></div>
+    		          <div id="rnaseq_population_OSMNP_tree_by_organ" style="display: none; width:100%"></div>
+    		          <label class="btn btn-light" id="all_pops_by_cytokine_label" style="cursor:pointer; display: none">
+    		            <input type="radio" autocomplete="off" id="all_pops_by_cytokine" value="Select the populations of interest by cytokine"> Select the populations by cytokine types
+    		          </label>
+    		          <div id="rnaseq_population_tree_by_cytokine_CGC" style="display: none; width:100%"></div>
+    		          <div id="rnaseq_population_tree_by_cytokine_IC" style="display: none; width:100%"></div>
+    		        </div>
+	            </div>
+                
+	            <fieldset class="form-group">
+                	<div class="row">
+	                	<legend class="col-form-label col-12 col-lg-4" for="rnaseq_GeneList"><b>Gene Symbol:</b></legend>
+	                	<div id="rnaseq_GeneList" class="col-12 col-lg-8">
+	                		<input type="text" class="typeahead" id="rnaseq_Gene" placeholder="Search Gene ...">
+	                		<div class="form-check">
+	                			<input class="form-check-input" type="checkbox" value="checked" id="alias_option" onclick = "refresh_rnaseq_genelist()">
+	                			<label class="form-check-label" for="alias_option">Include Aliases</label>
+	                		</div>
+                        </div>
+                    </div>
+    		    </fieldset>
+    		    
+    		    <div class="form-group row">
+	              <label class="col-form-label col-12 col-lg-4" for="rnaseq_scaling_list"><b>Scaling:</b></label>
+	                <select id="rnaseq_scaling_list" class="selectpicker show-tick col-12 col-lg-8" data-width="100%" data-container="body">
+	                  <option>Local</option>
+                      <option>Local (log10)</option>
+                      <option>Global</option>
+                      <option>Global (log10)</option>
+	                </select>
+	            </div>
+    		   
+	            <hr>
+                    
+	            <div class="text-center">
+                	<button type="button" class="btn btn-primary" id="rnaseq_submit" value="">Submit</button>
+                </div>
+    		  </form>
+    		</div>
+    	  </div>
+    	                    
+    	  <div class="card border-0 shadow p-3 mb-5 bg-white rounded" id="rnaseq_meta_info" style="display:none">
+	      <div class="metainfo" id="rnaseq_metainfo_table">
+	      <table class="table table-hover table-bordered">
+		  <tbody>
+		    <tr>
+		      <th scope="row" class="table-info" width="30%">Gene Symbol</th>
+		      <td id="rnaseq_gene_symbol"></td>
+		    </tr>
+		    <tr>
+		      <th scope="row" class="table-info">Gene Full Name</th>
+		      <td id="rnaseq_gene_name"></td>
+		    </tr>
+		    <tr>
+		      <th scope="row" class="table-info">Synonyms</th>
+		      <td id="rnaseq_synonyms"></td>
+		    </tr>
+		    <tr>
+		      <th scope="row" class="table-info" title="Summary is not available for the mouse gene. This summary is from the human ortholog.">Summary<br/><h6>(from the human ortholog)</h6></th>
+		      <td>
+		      	<div id="rnaseq_summary" style="height: 85px; overflow:auto;"></div>
+		      </td>
+		    </tr>
+		    <tr>
+		      <th scope="row" class="table-info">Feature Type</th>
+		      <td id="rnaseq_type"></td>
+		    </tr>
+		    <tr>
+		      <th scope="row" class="table-info">Genome Position</th>
+		      <td id="rnaseq_seq_map"></td>
+		    </tr>
+		    <tr>
+		      <th scope="row" class="table-info">LinkOut</th>
+		      <td id="rnaseq_linkout"></td>
+		    </tr>
+		    <tr>
+		      <th scope="row" class="table-info">Human Ortholog</th>
+		      <td id="rnaseq_human_orthology"></td>
+		    </tr>
+		    <tr>
+		      <th scope="row" class="table-info" title="Only the GO term validated by experimental evidence is shown">Gene Ontology</th>
+		      <td>
+		      	<div id="rnaseq_GO" style="height: 90px; overflow:auto;"></div>
+		      	<div id="rnaseq_GO_showAll" style="border: 1px solid lightgray; height: 2em; line-height: 2em; text-align:center"></div>
+		      </td>
+		    </tr>
+		    <tr>
+		      <th scope="row" class="table-info">KEGG Pathway</th>
+		      <td>
+		      	<div id="rnaseq_kegg" style="height: 90px; overflow:auto;"></div>
+		      </td>
+		    </tr>
+		  </tbody>
+		  </table>
+	      </div>
+	      </div>
+    	</div>
+
+    	    
+    	    
+	    <div class="col-12 col-lg-8 card border-0" id="chart_card">
+    	<div id="link_option" class="form-group" align="right" style="display:none">
+    		<button type="button" class="btn btn-success btn-sm" id="chatgpt_btn" value="" onclick="FireEvent('ChatGPTskylineRNAseq')">Gene Annotation from AI</button>
+  			<button type="button" class="btn btn-info btn-sm" id="gene_page_btn" value="">Gene Page</button>
+  			<button type="button" class="btn btn-info btn-sm" id="microarray_skyline_btn" value="">Microarray Gene Skyline</button>
+  			<button type="button" class="btn btn-info btn-sm" id="gene_constellation_btn" value="">Gene Constellation</button>
+  			<button type="button" class="btn btn-info btn-sm" id="chromatin_btn" value="">Chromatin</button>
+  			<button type="button" class="btn btn-info btn-sm" id="enhancer_network_btn" value="">Enhancer Networks</button>
+  			<button type="button" class="btn btn-info btn-sm" id="ICA_btn" value="">Human Cell Atlas</button>
+    	</div>
+    	<div id="CGC_legend" class="form-group" align="right" style="display:none">
+    	    <span class="badge badge-pill" style="background-color:#5e3a3a;color:white;">IL2</span>
+    	    <span class="badge badge-pill" style="background-color:#cc33cc;color:white;">IL4</span>
+    	    <span class="badge badge-pill" style="background-color:#66ccff;color:white;">IL7</span>
+    	    <span class="badge badge-pill" style="background-color:#3333cc;color:white;">IL9</span>
+    	    <span class="badge badge-pill" style="background-color:#f25d22;color:white;">IL15</span>
+    	    <span class="badge badge-pill" style="background-color:#33cc33;color:white;">IL21</span>
+    	    <span class="badge badge-pill" style="background-color:#999999;color:white;">PBS</span>
+    	</div>
+    	<div id="IC_legend" class="form-group" align="right" style="display:none">
+    	    <span class="badge badge-pill" style="background-color:#999999;color:white;">PBS</span>
+    	    <span class="badge badge-pill" style="background-color:#FFA500;color:white;">IL1b</span>
+    	    <span class="badge badge-pill" style="background-color:#00BFFF;color:white;">IL6</span>
+    	    <span class="badge badge-pill" style="background-color:#DC143C;color:white;">TNFa</span>    	      	
+    	</div>
+	    <div id="chart" style="overflow:auto;"></div>
+	    <div id="immgen_uli_rnaseq_save_option" class="form-group" align="right" style="display:none">
+  			<button type="button" class="btn btn-primary btn-sm" id="immgen_uli_rnaseq_save_expr" value="">Save expression data as CSV</button>
+  			<button type="button" class="btn btn-primary btn-sm" id="immgen_uli_rnaseq_save_meta" value="">Save meta data as CSV</button>
+  			<button type="button" class="btn btn-primary btn-sm" id="immgen_uli_rnaseq_save_as_svg" value="">Save as SVG</button>
+  			<button type="button" class="btn btn-primary btn-sm" id="immgen_uli_rnaseq_save_as_png" value="">Save as PNG</button>
+    		<button type="button" class="btn btn-primary btn-sm" id="immgen_uli_rnaseq_save_as_pdf" value="">Save as PDF</button>
+    		<button type="button" class="btn btn-primary btn-sm" id="immgen_uli_rnaseq_print" value="">Print</button>
+    		<button type="button" class="btn btn-primary btn-sm" id="immgen_uli_rnaseq_email" value="">Send Email</button>
+    	</div>        
+	    <div id="immgen_OSMNP_uli_rnaseq_save_option" class="form-group" align="right" style="display:none">
+  	  		<button type="button" class="btn btn-primary btn-sm" id="immgen_OSMNP_uli_rnaseq_save_expr" value="">Save expression data as CSV</button>
+  	  		<button type="button" class="btn btn-primary btn-sm" id="immgen_OSMNP_uli_rnaseq_save_meta" value="">Save meta data as CSV</button>
+  			<button type="button" class="btn btn-primary btn-sm" id="immgen_OSMNP_uli_rnaseq_save_as_svg" value="">Save as SVG</button>
+  			<button type="button" class="btn btn-primary btn-sm" id="immgen_OSMNP_uli_rnaseq_save_as_png" value="">Save as PNG</button>
+    		<button type="button" class="btn btn-primary btn-sm" id="immgen_OSMNP_uli_rnaseq_save_as_pdf" value="">Save as PDF</button>
+    		<button type="button" class="btn btn-primary btn-sm" id="immgen_OSMNP_uli_rnaseq_print" value="">Print</button>
+    		<button type="button" class="btn btn-primary btn-sm" id="immgen_OSMNP_uli_rnaseq_email" value="">Send Email</button>
+    	 </div>
+    	 <div id="immgen_CGC_uli_rnaseq_save_option" class="form-group" align="right" style="display:none">
+  	  		<button type="button" class="btn btn-primary btn-sm" id="immgen_CGC_uli_rnaseq_save_expr" value="">Save expression data as CSV</button>
+  	  		<button type="button" class="btn btn-primary btn-sm" id="immgen_CGC_uli_rnaseq_save_meta" value="">Save meta data as CSV</button>
+  			<button type="button" class="btn btn-primary btn-sm" id="immgen_CGC_uli_rnaseq_save_as_svg" value="">Save as SVG</button>
+  			<button type="button" class="btn btn-primary btn-sm" id="immgen_CGC_uli_rnaseq_save_as_png" value="">Save as PNG</button>
+    		<button type="button" class="btn btn-primary btn-sm" id="immgen_CGC_uli_rnaseq_save_as_pdf" value="">Save as PDF</button>
+    		<button type="button" class="btn btn-primary btn-sm" id="immgen_CGC_uli_rnaseq_print" value="">Print</button>
+    		<button type="button" class="btn btn-primary btn-sm" id="immgen_CGC_uli_rnaseq_email" value="">Send Email</button>
+    	 </div>
+    	 <div id="immgen_IC_uli_rnaseq_save_option" class="form-group" align="right" style="display:none">
+  	  		<button type="button" class="btn btn-primary btn-sm" id="immgen_IC_uli_rnaseq_save_expr" value="">Save expression data as CSV</button>
+  	  		<button type="button" class="btn btn-primary btn-sm" id="immgen_IC_uli_rnaseq_save_meta" value="">Save meta data as CSV</button>
+  			<button type="button" class="btn btn-primary btn-sm" id="immgen_IC_uli_rnaseq_save_as_svg" value="">Save as SVG</button>
+  			<button type="button" class="btn btn-primary btn-sm" id="immgen_IC_uli_rnaseq_save_as_png" value="">Save as PNG</button>
+    		<button type="button" class="btn btn-primary btn-sm" id="immgen_IC_uli_rnaseq_save_as_pdf" value="">Save as PDF</button>
+    		<button type="button" class="btn btn-primary btn-sm" id="immgen_IC_uli_rnaseq_print" value="">Print</button>
+    		<button type="button" class="btn btn-primary btn-sm" id="immgen_IC_uli_rnaseq_email" value="">Send Email</button>
+    	 </div>
+    	 <div id="immgen_iTP_uli_rnaseq_save_option" class="form-group" align="right" style="display:none">
+  	  		<button type="button" class="btn btn-primary btn-sm" id="immgen_iTP_uli_rnaseq_save_expr" value="">Save expression data as CSV</button>
+  	  		<button type="button" class="btn btn-primary btn-sm" id="immgen_iTP_uli_rnaseq_save_meta" value="">Save meta data as CSV</button>
+  			<button type="button" class="btn btn-primary btn-sm" id="immgen_iTP_uli_rnaseq_save_as_svg" value="">Save as SVG</button>
+  			<button type="button" class="btn btn-primary btn-sm" id="immgen_iTP_uli_rnaseq_save_as_png" value="">Save as PNG</button>
+    		<button type="button" class="btn btn-primary btn-sm" id="immgen_iTP_uli_rnaseq_save_as_pdf" value="">Save as PDF</button>
+    		<button type="button" class="btn btn-primary btn-sm" id="immgen_iTP_uli_rnaseq_print" value="">Print</button>
+    		<button type="button" class="btn btn-primary btn-sm" id="immgen_iTP_uli_rnaseq_email" value="">Send Email</button>
+    	 </div>
+    	 </div>
+	  </div>
+	</div>
+	<hr style="width:95%;">
+        
+	<?php 
+        include 'main.php'; 
+    ?> 
+	
+    <input type="hidden" name="rnaseq_group" id="rnaseq_group"></input><br>
+    <input type="hidden" name="rnaseq_OSMNP_group" id="rnaseq_OSMNP_group"></input><br>
+    <input type="hidden" name="rnaseq_group_CGC" id="rnaseq_group_CGC"></input><br>
+    <input type="hidden" name="rnaseq_group_IC" id="rnaseq_group_IC"></input><br>
+    <input type="hidden" name="rnaseq_group_by_organ" id="rnaseq_group_by_organ"></input><br>
+    <input type="hidden" name="rnaseq_OSMNP_group_by_organ" id="rnaseq_OSMNP_group_by_organ"></input><br>
+    <input type="hidden" name="rnaseq_group_CGC_by_cytokine" id="rnaseq_group_CGC_by_cytokine"></input><br>
+    <input type="hidden" name="rnaseq_group_IC_by_cytokine" id="rnaseq_group_IC_by_cytokine"></input><br>
+    <input type="hidden" name="rnaseq_group_iTP" id="rnaseq_group_iTP"></input><br>
+        
+    <a id="back2Top" title="Back to top" href="#">&#10148;</a>
+        
+	<script type="text/javascript">
+	
+		var margin_left = 220;
+		var initial_data_group = $("#rnaseq_datagroup_list").val();
+		if (initial_data_group == 'immgenT Pseudobulk') {
+			margin_left = 120;   // smaller left margin for immgenT Pseudobulk
+		}
+		function random_immgenT_pseudobulk_gene() {
+			var immgenT_demo_genes = ['Klrg1', 'Sell', 'Cd8b1', 'Tcf7', 'Rorc', 'Tbx21'];
+			return immgenT_demo_genes[Math.floor(Math.random() * immgenT_demo_genes.length)];
+		}
+		var margin = {top: 80, right: 40, bottom: 60, left: margin_left};
+		
+		var width = document.getElementById("chart").offsetWidth - margin.left - margin.right;
+		var height = window.innerHeight - margin.top - margin.bottom + 360;
+		document.getElementById("rnaseq_metainfo_table").style.height = (height - 250).toString() + "px";
+		document.getElementById("rnaseq_Gene").style.width = ($("#rnaseq_population_list").width()-2).toString() + 'px';
+		$( window ).resize(function() {
+			document.getElementById("rnaseq_Gene").style.width = ($("#rnaseq_population_list").width()-2).toString() + 'px';
+  		});
+  		
+  		var chatgpt_user_id;
+		var chatgpt_output;
+		var chatgpt_all_outputs = [];
+		var chatgpt_output_followup;
+		var rnaseq_datagroup_url_toggle = 0;
+		var rnaseq_datagroup_select_suppress = false;
+		
+		var chart = d3.select("#chart").append("svg")
+					.attr("width", width + margin.left + margin.right-40)
+    					.attr("height", height + margin.top + margin.bottom);
+    		var dataset;    		
+    		var description1, description2;
+    		var human_orthology_gene;
+    		
+    		var datavars = [5, 15, 60, 720, 7200, 1392000];
+    		var prev_width = [0,
+ 					datavars[0],
+ 					datavars[0] +  datavars[1],
+ 					datavars[0] +  datavars[1] +  datavars[2],
+ 					datavars[0] +  datavars[1] +  datavars[2] +  datavars[3], 
+ 					datavars[0] +  datavars[1] +  datavars[2] +  datavars[3] +  datavars[4]
+ 				];
+ 		var prev_width_log = [1,
+ 					datavars[0],
+ 					datavars[0] +  datavars[1],
+ 					datavars[0] +  datavars[1] +  datavars[2],
+ 					datavars[0] +  datavars[1] +  datavars[2] +  datavars[3], 
+ 					datavars[0] +  datavars[1] +  datavars[2] +  datavars[3] +  datavars[4]
+ 				];
+ 		var colors = ["#3288bd","#99d594","#e6f598","#fee08b","#fc8d59","#d53e4f"];
+    		var legend = [["Trace", "0 - 5"], ["Very Low", "5 - 20"], ["Low", "20 - 80"], ["Medium", "80 - 800"], ["High", "800 - 8000"], ["Very High", " > 8000"]];
+
+		
+		var jsonText_gencode_GRCm38 = $.ajax({                                         
+ 			datatype: 'json',      
+ 			url: 'resources/gencode_GRCm38_genes_no_rRNA_20200610.json',               
+			async: false
+		}).responseText;
+		var temp_gencode_GRCm38 = JSON.parse(jsonText_gencode_GRCm38);
+		
+		var gene_info_gencode_GRCm38 = [];
+		var gene_info_gencode_GRCm38_synonyms = [];
+		var gene_info_gencode_GRCm38_protein_coding = [];
+		var hashtable_synonyms = new Object();
+				
+		for(var v in temp_gencode_GRCm38) {
+			var keyname_gencode_GRCm38 = temp_gencode_GRCm38[v]['name'];
+			if(temp_gencode_GRCm38[v]['synonyms'] == 'NA') {
+				hashtable_synonyms[keyname_gencode_GRCm38] = keyname_gencode_GRCm38;
+				gene_info_gencode_GRCm38.push(keyname_gencode_GRCm38);
+				gene_info_gencode_GRCm38_synonyms.push(keyname_gencode_GRCm38);
+			}
+			else if (temp_gencode_GRCm38[v]['synonyms'].search(/\|/i) == -1) {
+				hashtable_synonyms[keyname_gencode_GRCm38] = keyname_gencode_GRCm38;
+				gene_info_gencode_GRCm38.push(keyname_gencode_GRCm38);
+				gene_info_gencode_GRCm38_synonyms.push(keyname_gencode_GRCm38);
+				
+				if(temp_gencode_GRCm38[v]['synonyms'] != keyname_gencode_GRCm38){
+					hashtable_synonyms[temp_gencode_GRCm38[v]['synonyms'] + ' (Alias of ' + keyname_gencode_GRCm38 + ')'] = keyname_gencode_GRCm38;
+					gene_info_gencode_GRCm38_synonyms.push(temp_gencode_GRCm38[v]['synonyms'] + ' (Alias of ' + keyname_gencode_GRCm38 + ')');
+				}
+			}
+			else if (temp_gencode_GRCm38[v]['synonyms'].search(/\|/i) > 0){
+				hashtable_synonyms[keyname_gencode_GRCm38] = keyname_gencode_GRCm38;
+				gene_info_gencode_GRCm38.push(keyname_gencode_GRCm38);
+				gene_info_gencode_GRCm38_synonyms.push(keyname_gencode_GRCm38);
+				
+				var res = temp_gencode_GRCm38[v]['synonyms'].split("|");
+				for(var s in res) {
+					if(res[s] != keyname_gencode_GRCm38){
+						hashtable_synonyms[res[s] + ' (Alias of ' + keyname_gencode_GRCm38 + ')'] = keyname_gencode_GRCm38;
+						gene_info_gencode_GRCm38_synonyms.push(res[s] + ' (Alias of ' + keyname_gencode_GRCm38 + ')');
+					}
+				}
+			}
+			
+			if(temp_gencode_GRCm38[v]['type'] == 'protein coding gene'){
+				gene_info_gencode_GRCm38_protein_coding.push(keyname_gencode_GRCm38);
+			}
+		}
+				
+		var genes_gencode_GRCm38 = new Bloodhound({
+			datumTokenizer: Bloodhound.tokenizers.whitespace,
+			queryTokenizer: Bloodhound.tokenizers.whitespace,
+			local: gene_info_gencode_GRCm38
+		});
+		
+		////////////////////////////////////////////////////////////////////////
+		var jsonText_gencode_GRCm38_CGC = $.ajax({                                         
+ 			datatype: 'json',      
+ 			url: 'resources/gencode_GRCm38_genes_no_rRNA_CGC_20210430.json',               
+			async: false
+		}).responseText;
+		var temp_gencode_GRCm38_CGC = JSON.parse(jsonText_gencode_GRCm38_CGC);
+		
+		var gene_info_gencode_GRCm38_CGC = [];
+		var gene_info_gencode_GRCm38_synonyms_CGC = [];
+		var gene_info_gencode_GRCm38_protein_coding_CGC = [];
+		var hashtable_synonyms_CGC = new Object();
+		
+		for(var v in temp_gencode_GRCm38_CGC) {
+			var keyname_gencode_GRCm38_CGC = temp_gencode_GRCm38_CGC[v]['name'];
+			if(temp_gencode_GRCm38_CGC[v]['synonyms'] == 'NA') {
+				hashtable_synonyms_CGC[keyname_gencode_GRCm38_CGC] = keyname_gencode_GRCm38_CGC;
+				gene_info_gencode_GRCm38_CGC.push(keyname_gencode_GRCm38_CGC);
+				gene_info_gencode_GRCm38_synonyms_CGC.push(keyname_gencode_GRCm38_CGC);
+			}
+			else if (temp_gencode_GRCm38_CGC[v]['synonyms'].search(/\|/i) == -1) {
+				hashtable_synonyms_CGC[keyname_gencode_GRCm38_CGC] = keyname_gencode_GRCm38_CGC;
+				gene_info_gencode_GRCm38_CGC.push(keyname_gencode_GRCm38_CGC);
+				gene_info_gencode_GRCm38_synonyms_CGC.push(keyname_gencode_GRCm38_CGC);
+				
+				if(temp_gencode_GRCm38_CGC[v]['synonyms'] != keyname_gencode_GRCm38_CGC){
+					hashtable_synonyms_CGC[temp_gencode_GRCm38_CGC[v]['synonyms'] + ' (Alias of ' + keyname_gencode_GRCm38_CGC + ')'] = keyname_gencode_GRCm38_CGC;
+					gene_info_gencode_GRCm38_synonyms_CGC.push(temp_gencode_GRCm38_CGC[v]['synonyms'] + ' (Alias of ' + keyname_gencode_GRCm38_CGC + ')');
+				}
+			}
+			else if (temp_gencode_GRCm38_CGC[v]['synonyms'].search(/\|/i) > 0){
+				hashtable_synonyms_CGC[keyname_gencode_GRCm38_CGC] = keyname_gencode_GRCm38_CGC;
+				gene_info_gencode_GRCm38_CGC.push(keyname_gencode_GRCm38_CGC);
+				gene_info_gencode_GRCm38_synonyms_CGC.push(keyname_gencode_GRCm38_CGC);
+				
+				var res = temp_gencode_GRCm38_CGC[v]['synonyms'].split("|");
+				for(var s in res) {
+					if(res[s] != keyname_gencode_GRCm38_CGC){
+						hashtable_synonyms_CGC[res[s] + ' (Alias of ' + keyname_gencode_GRCm38_CGC + ')'] = keyname_gencode_GRCm38_CGC;
+						gene_info_gencode_GRCm38_synonyms_CGC.push(res[s] + ' (Alias of ' + keyname_gencode_GRCm38_CGC + ')');
+					}
+				}
+			}
+			
+			if(temp_gencode_GRCm38_CGC[v]['type'] == 'protein coding gene'){
+				gene_info_gencode_GRCm38_protein_coding_CGC.push(keyname_gencode_GRCm38_CGC);
+			}
+		}
+				
+		var genes_gencode_GRCm38_CGC = new Bloodhound({
+			datumTokenizer: Bloodhound.tokenizers.whitespace,
+			queryTokenizer: Bloodhound.tokenizers.whitespace,
+			local: gene_info_gencode_GRCm38_CGC
+		});
+		
+		////////////////////////////////////////////////////////////////////////
+		var jsonText_gencode_GRCm38_IC = $.ajax({                                         
+ 			datatype: 'json',      
+ 			url: 'resources/gencode_GRCm38_genes_no_rRNA_Cytokines_Inflammatory_20230727.json',               
+			async: false
+		}).responseText;
+		var temp_gencode_GRCm38_IC = JSON.parse(jsonText_gencode_GRCm38_IC);
+		
+		var gene_info_gencode_GRCm38_IC = [];
+		var gene_info_gencode_GRCm38_synonyms_IC = [];
+		var gene_info_gencode_GRCm38_protein_coding_IC = [];
+		var hashtable_synonyms_IC = new Object();
+		
+		for(var v in temp_gencode_GRCm38_IC) {
+			var keyname_gencode_GRCm38_IC = temp_gencode_GRCm38_IC[v]['name'];
+			if(temp_gencode_GRCm38_IC[v]['synonyms'] == 'NA') {
+				hashtable_synonyms_IC[keyname_gencode_GRCm38_IC] = keyname_gencode_GRCm38_IC;
+				gene_info_gencode_GRCm38_IC.push(keyname_gencode_GRCm38_IC);
+				gene_info_gencode_GRCm38_synonyms_IC.push(keyname_gencode_GRCm38_IC);
+			}
+			else if (temp_gencode_GRCm38_IC[v]['synonyms'].search(/\|/i) == -1) {
+				hashtable_synonyms_IC[keyname_gencode_GRCm38_IC] = keyname_gencode_GRCm38_IC;
+				gene_info_gencode_GRCm38_IC.push(keyname_gencode_GRCm38_IC);
+				gene_info_gencode_GRCm38_synonyms_IC.push(keyname_gencode_GRCm38_IC);
+				
+				if(temp_gencode_GRCm38_IC[v]['synonyms'] != keyname_gencode_GRCm38_IC){
+					hashtable_synonyms_IC[temp_gencode_GRCm38_IC[v]['synonyms'] + ' (Alias of ' + keyname_gencode_GRCm38_IC + ')'] = keyname_gencode_GRCm38_IC;
+					gene_info_gencode_GRCm38_synonyms_IC.push(temp_gencode_GRCm38_IC[v]['synonyms'] + ' (Alias of ' + keyname_gencode_GRCm38_IC + ')');
+				}
+			}
+			else if (temp_gencode_GRCm38_IC[v]['synonyms'].search(/\|/i) > 0){
+				hashtable_synonyms_IC[keyname_gencode_GRCm38_IC] = keyname_gencode_GRCm38_IC;
+				gene_info_gencode_GRCm38_IC.push(keyname_gencode_GRCm38_IC);
+				gene_info_gencode_GRCm38_synonyms_IC.push(keyname_gencode_GRCm38_IC);
+				
+				var res = temp_gencode_GRCm38_IC[v]['synonyms'].split("|");
+				for(var s in res) {
+					if(res[s] != keyname_gencode_GRCm38_IC){
+						hashtable_synonyms_IC[res[s] + ' (Alias of ' + keyname_gencode_GRCm38_IC + ')'] = keyname_gencode_GRCm38_IC;
+						gene_info_gencode_GRCm38_synonyms_IC.push(res[s] + ' (Alias of ' + keyname_gencode_GRCm38_IC + ')');
+					}
+				}
+			}
+			
+			if(temp_gencode_GRCm38_IC[v]['type'] == 'protein coding gene'){
+				gene_info_gencode_GRCm38_protein_coding_IC.push(keyname_gencode_GRCm38_IC);
+			}
+		}
+				
+		var genes_gencode_GRCm38_IC = new Bloodhound({
+			datumTokenizer: Bloodhound.tokenizers.whitespace,
+			queryTokenizer: Bloodhound.tokenizers.whitespace,
+			local: gene_info_gencode_GRCm38_IC
+		});
+		
+		////////////////////////////////////////////////////////////////////////
+		$('#rnaseq_GeneList .typeahead').typeahead({
+		  hint: true,
+		  highlight: true,
+		  minLength: 1
+		},
+		{
+		  name: 'genes',
+		  limit: 100,
+		  source: genes_gencode_GRCm38
+		});
+      		
+		////////////////////////////////////////////////////////////////////////
+		$("#rnaseq_population_tree").fancytree({
+		  checkbox: true,
+		  selectMode: 3,
+		  minExpandLevel: 2,
+		  autoCollapse: true,
+		  source: {
+		  	url: "resources/immgen_uli_rnaseq_samples.json",
+		  	cache: false
+		  },
+		
+		  select: function(event, data) {
+		    	var selNodes = data.tree.getSelectedNodes();
+		    	var selKeys = $.map(selNodes, function(node){
+					   if (node.hasChildren() == false) { return node.key; }
+					});
+			$("#rnaseq_group").text(selKeys.join(","));
+		  }
+		});
+
+		
+		$("#rnaseq_population_OSMNP_tree").fancytree({
+		  checkbox: true,
+		  selectMode: 3,
+		  minExpandLevel: 2,
+		  autoCollapse: true,
+		  source: {
+		  	url: "resources/immgen_OSMNP_uli_rnaseq_samples.json",
+		  	cache: false
+		  },
+		
+		  select: function(event, data) {
+		    	var selNodes = data.tree.getSelectedNodes();
+		    	var selKeys = $.map(selNodes, function(node){
+					   if (node.hasChildren() == false) { return node.key; }
+					});
+			$("#rnaseq_OSMNP_group").text(selKeys.join(","));
+		  }
+		});
+		
+		$("#rnaseq_population_CGC_tree").fancytree({
+		  checkbox: true,
+		  selectMode: 3,
+		  minExpandLevel: 2,
+		  autoCollapse: true,
+		  source: {
+		  	url: "resources/immgen_CGC_samples.json",
+		  	cache: false
+		  },
+		
+		  select: function(event, data) {
+		    	var selNodes = data.tree.getSelectedNodes();
+		    	var selKeys = $.map(selNodes, function(node){
+					   if (node.hasChildren() == false) { return node.key; }
+					});
+			$("#rnaseq_group_CGC").text(selKeys.join(","));
+		  }
+		});
+		
+	$("#rnaseq_population_IC_tree").fancytree({
+	  checkbox: true,
+	  selectMode: 3,
+	  minExpandLevel: 2,
+	  autoCollapse: true,
+	  source: {
+	  	url: "resources/immgen_Cytokines_Inflammatory_samples.json",
+	  	cache: false
+	  },
+	
+	  select: function(event, data) {
+	    	var selNodes = data.tree.getSelectedNodes();
+	    	var selKeys = $.map(selNodes, function(node){
+				   if (node.hasChildren() == false) { return node.key; }
+				});
+		$("#rnaseq_group_IC").text(selKeys.join(","));
+	  }
+	});
+
+	$("#rnaseq_population_iTP_tree").fancytree({
+	  checkbox: true,
+	  selectMode: 3,
+	  minExpandLevel: 2,
+	  autoCollapse: true,
+	  source: {
+	  	url: "resources/immgenT_pseudobulk_samples.json",
+	  	cache: false
+	  },
+	
+	  select: function(event, data) {
+	    	var selNodes = data.tree.getSelectedNodes();
+	    	var selKeys = $.map(selNodes, function(node){
+				   if (node.hasChildren() == false) { return node.key; }
+				});
+		$("#rnaseq_group_iTP").text(selKeys.join(","));
+	  }
+	});
+	
+	$("#rnaseq_population_tree_by_organ").fancytree({
+		  checkbox: true,
+		  selectMode: 3,
+		  minExpandLevel: 2,
+		  autoCollapse: true,
+		  source: {
+		  	url: "resources/immgen_uli_rnaseq_samples_by_organ.json",
+		  	cache: false
+		  },
+		
+		  select: function(event, data) {
+		    	var selNodes = data.tree.getSelectedNodes();
+		    	var selKeys = $.map(selNodes, function(node){
+					   if (node.hasChildren() == false) { return node.key; }
+					});
+			$("#rnaseq_group_by_organ").text(selKeys.join(","));
+		  }
+		});
+		
+		$("#rnaseq_population_OSMNP_tree_by_organ").fancytree({
+		  checkbox: true,
+		  selectMode: 3,
+		  minExpandLevel: 2,
+		  autoCollapse: true,
+		  source: {
+		  	url: "resources/immgen_OSMNP_uli_rnaseq_samples_by_organ.json",
+		  	cache: false
+		  },
+		
+		  select: function(event, data) {
+		    	var selNodes = data.tree.getSelectedNodes();
+		    	var selKeys = $.map(selNodes, function(node){
+					   if (node.hasChildren() == false) { return node.key; }
+					});
+			$("#rnaseq_OSMNP_group_by_organ").text(selKeys.join(","));
+		  }
+		});
+		
+		$("#rnaseq_population_tree_by_cytokine_CGC").fancytree({
+		  checkbox: true,
+		  selectMode: 3,
+		  minExpandLevel: 2,
+		  autoCollapse: true,
+		  source: {
+		  	url: "resources/immgen_CGC_samples_by_cytokine.json",
+		  	cache: false
+		  },
+		
+		  select: function(event, data) {
+		    	var selNodes = data.tree.getSelectedNodes();
+		    	var selKeys = $.map(selNodes, function(node){
+					   if (node.hasChildren() == false) { return node.key; }
+					});
+			$("#rnaseq_group_CGC_by_cytokine").text(selKeys.join(","));
+		  }
+		});
+		
+		$("#rnaseq_population_tree_by_cytokine_IC").fancytree({
+		  checkbox: true,
+		  selectMode: 3,
+		  minExpandLevel: 2,
+		  autoCollapse: true,
+		  source: {
+		  	url: "resources/immgen_Cytokines_Inflammatory_samples_by_cytokine.json",
+		  	cache: false
+		  },
+		
+		  select: function(event, data) {
+		    	var selNodes = data.tree.getSelectedNodes();
+		    	var selKeys = $.map(selNodes, function(node){
+					   if (node.hasChildren() == false) { return node.key; }
+					});
+			$("#rnaseq_group_IC_by_cytokine").text(selKeys.join(","));
+		  }
+		});
+		
+		$('#rnaseq_GeneList .typeahead').bind('typeahead:select', function(ev, suggestion) {
+				rnaseq_gene_source = "Input";
+				document.getElementById("rnaseq_submit").click();
+		});
+		
+    	$("#rnaseq_datagroup_list").on("changed.bs.select", function(e, clickedIndex, newValue, oldValue) {
+    			var selected_item = this.value;
+    			$('#rnaseq_population_list > label.btn').removeClass('active');
+    			$('#rnaseq_population_list > label.btn input:radio').prop('checked', false);
+    			$('#ref_pops').prop('checked', true);
+    			$('#ref_pops').closest('label.btn').addClass('active');
+    			var selected_pop_list_item = $("#rnaseq_population_list label.active input").val();
+    			
+    			refresh_rnaseq_genelist();
+    			
+    			if(selected_pop_list_item == 'Reference populations') {
+    				if(selected_item == 'ImmGen ULI RNASeq' || selected_item == 'ImmGen MNP OpenSource' ) {
+    					document.getElementById('all_pops_by_organ_label').style.display= "";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "none";
+    				}
+    				else if(selected_item == 'ImmGen CGC' || selected_item == 'ImmGen Cytokines Inflammatory' ) {
+    					document.getElementById('all_pops_by_organ_label').style.display= "none";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "";
+    				}
+    				else if(selected_item == 'immgenT Pseudobulk') {
+    					document.getElementById('all_pops_by_organ_label').style.display= "none";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "none";
+    				}
+    					
+    				document.getElementById('rnaseq_population_tree').style.display = 'none';
+    				document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    				document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    				document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    				document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    				document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    				document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    				document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    				document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+			}
+    			else if(selected_pop_list_item == 'Select the populations of interest') {
+    				if(selected_item == 'ImmGen ULI RNASeq') {
+    					document.getElementById('all_pops_by_organ_label').style.display= "";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "none";
+    					
+    					document.getElementById('rnaseq_population_tree').style.display = 'block';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+				}
+				else if(selected_item == 'ImmGen MNP OpenSource') {
+					document.getElementById('all_pops_by_organ_label').style.display= "";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "none";
+    					
+    					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'block';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+				}
+				else if(selected_item == 'ImmGen CGC') {
+    					document.getElementById('all_pops_by_organ_label').style.display= "none";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "";
+    					
+					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'block';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+				}
+				else if(selected_item == 'ImmGen Cytokines Inflammatory') {
+    					document.getElementById('all_pops_by_organ_label').style.display= "none";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "";
+    					
+					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'block';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+				}
+				else if(selected_item == 'immgenT Pseudobulk') {
+    					document.getElementById('all_pops_by_organ_label').style.display= "none";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "none";
+    					
+					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'block';
+				}
+			}
+			else if(selected_pop_list_item == 'Select the populations of interest by organs') {
+    				if(selected_item == 'ImmGen ULI RNASeq') {    					
+    					document.getElementById('all_pops_by_organ_label').style.display= "";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "none";
+    					$('#all_pops_by_organ').closest('.btn').button('toggle');
+    					
+    					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'block';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+				}
+				else if(selected_item == 'ImmGen MNP OpenSource') {
+    					document.getElementById('all_pops_by_organ_label').style.display= "";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "none";
+    					$('#all_pops_by_organ').closest('.btn').button('toggle');
+    					
+    					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'block';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+				}
+				else if(selected_item == 'ImmGen CGC') {
+    					document.getElementById('all_pops_by_organ_label').style.display= "none";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "";
+    					$('#all_pops_by_cytokine').closest('.btn').button('toggle');
+    					
+					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'block';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    				else if(selected_item == 'ImmGen Cytokines Inflammatory') {
+    					document.getElementById('all_pops_by_organ_label').style.display= "none";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "";
+    					$('#all_pops_by_cytokine').closest('.btn').button('toggle');
+    					
+					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'block';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    			}
+    			else if(selected_pop_list_item == 'Select the populations of interest by cytokine') {
+    				if(selected_item == 'ImmGen ULI RNASeq') {    					
+    					document.getElementById('all_pops_by_organ_label').style.display= "";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "none";
+    					$('#all_pops_by_organ').closest('.btn').button('toggle');
+    					
+    					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'block';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+				}
+				else if(selected_item == 'ImmGen MNP OpenSource') {
+    					document.getElementById('all_pops_by_organ_label').style.display= "";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "none";
+    					$('#all_pops_by_organ').closest('.btn').button('toggle');
+    					
+    					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'block';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+				}
+				else if(selected_item == 'ImmGen CGC') {
+    					document.getElementById('all_pops_by_organ_label').style.display= "none";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "";
+    					$('#all_pops_by_cytokine').closest('.btn').button('toggle');
+    					
+					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'block';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    				else if(selected_item == 'ImmGen Cytokines Inflammatory') {
+    					document.getElementById('all_pops_by_organ_label').style.display= "none";
+    					document.getElementById('all_pops_by_cytokine_label').style.display= "";
+    					$('#all_pops_by_cytokine').closest('.btn').button('toggle');
+    					
+					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'block';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    			}
+    			
+    			if (!rnaseq_datagroup_select_suppress) {
+    				document.getElementById("rnaseq_submit").click();
+    			}
+    		});
+
+    		$("#rnaseq_population_list").click(function(){
+    			var selected_item = $("#rnaseq_population_list label.active input").val();
+    			var selected_data_group = $("#rnaseq_datagroup_list").val();
+    			if(selected_item == 'Select the populations of interest') {
+    				if(selected_data_group == 'ImmGen ULI RNASeq') {
+    					document.getElementById('rnaseq_population_tree').style.display = 'block';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    				else if (selected_data_group == 'ImmGen MNP OpenSource') {
+    					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'block';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    				else if (selected_data_group == 'ImmGen CGC') {
+					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'block';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    				else if (selected_data_group == 'ImmGen Cytokines Inflammatory') {
+					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'block';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    				else if (selected_data_group == 'immgenT Pseudobulk') {
+					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'block';
+    				}
+    			}
+    			else if(selected_item == 'Select the populations of interest by organs') {
+    				if(selected_data_group == 'ImmGen ULI RNASeq') {
+    					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'block';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    				else if (selected_data_group == 'ImmGen MNP OpenSource') {
+    					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'block';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    			}
+    			else if(selected_item == 'Select the populations of interest by cytokine') {
+    				if(selected_data_group == 'ImmGen CGC') {
+    					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'block';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    				else if(selected_data_group == 'ImmGen Cytokines Inflammatory') {
+    					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'block';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    			}
+    		});
+    		
+    		$("#rnaseq_population_list input:radio").on('change', function() {
+    			var selected_item = $(this).val();
+    			var selected_data_group = $("#rnaseq_datagroup_list").val();
+    			
+    			if(selected_item == 'Reference populations') {
+    				document.getElementById('rnaseq_population_tree').style.display = 'none';
+    				document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    				document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    				document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    				document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    				document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    				document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    				document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    				document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    			}
+    			else if(selected_item == 'Select the populations of interest') {
+    				if(selected_data_group == 'ImmGen ULI RNASeq') {    					
+    					document.getElementById('rnaseq_population_tree').style.display = 'block';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    				else if (selected_data_group == 'ImmGen MNP OpenSource') {    					
+    					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'block';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    				else if (selected_data_group == 'ImmGen CGC') {
+					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'block';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    				else if (selected_data_group == 'ImmGen Cytokines Inflammatory') {
+					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'block';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    				else if (selected_data_group == 'immgenT Pseudobulk') {
+					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'block';
+    				}
+    			}
+    			else if(selected_item == 'Select the populations of interest by organs') {
+    				if(selected_data_group == 'ImmGen ULI RNASeq') {
+    					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'block';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    				else if (selected_data_group == 'ImmGen MNP OpenSource') {
+    					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'block';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    			}
+    			else if(selected_item == 'Select the populations of interest by cytokine') {
+    				if(selected_data_group == 'ImmGen CGC') {
+    					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'block';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    				else if(selected_data_group == 'ImmGen Cytokines Inflammatory') {
+    					document.getElementById('rnaseq_population_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    					document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    					document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'block';
+    					document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				}
+    			}
+  
+    		});
+    		    
+    		$("#follow_up_list input:radio").on('change', function() {
+    			var selected_item = $(this).val();
+    			var rnaseq_gene_followup = $("#rnaseq_Gene").val();
+    			var followup_question;
+    			
+    			if(selected_item == 'question_1'){
+    				followup_question = "What is the role of this gene in myeloid cells?";
+    			} else if(selected_item == 'question_2'){
+    				followup_question = "Please show me the genes significantly regulated by this gene.";
+    			} else if(selected_item == 'question_3'){
+    				followup_question = "What are the applications of this gene in therapy and any disease linked to this gene?";
+    			} else if(selected_item == 'question_4'){
+    				followup_question = "What is the role of this gene in innate lymphoid cells?";
+    			}
+    			
+    			var chatgpt_input_tmp = document.createElement("p");
+				chatgpt_input_tmp.classList.add("chat_input");
+				document.getElementById("chatgpt_panel").prepend(chatgpt_input_tmp);
+				chatgpt_input_tmp.innerHTML = '<b>Prompt: </b>' + followup_question;
+				scroll_chat_to_newest();
+				chatgpt_all_outputs.push(followup_question)
+				
+    			var selectedAI = $('input[name="ai_option"]:checked').val();
+    			
+    			if (selectedAI === 'chatgpt') {
+    				// Call ChatGPT only
+    				callFollowupChatGPT(followup_question, rnaseq_gene_followup);
+    			} else if (selectedAI === 'claude') {
+    				// Call Claude only
+    				callFollowupClaude(followup_question, rnaseq_gene_followup);
+    			} else if (selectedAI === 'both') {
+    				// Call both ChatGPT and Claude
+    				callFollowupBothAI(followup_question, rnaseq_gene_followup);
+    			}
+    		});
+    		
+    		//$("#follow_up_list").on("changed.bs.select", function(e, clickedIndex, newValue, oldValue) {
+    		//	var selected_item = this.value;
+    		//	var rnaseq_gene_followup = $("#rnaseq_Gene").val();
+    		//	var followup_question;
+    		//	
+    		//	if(selected_item == 'question_1'){
+    		//		followup_question = "What is the role of mouse gene " + rnaseq_gene_followup + " in metabolic pathways?";
+    		//	} else if(selected_item == 'question_2'){
+    		//		followup_question = "Please show me the genes significantly regulated by mouse gene " + rnaseq_gene_followup + ".";
+    		//	} else if(selected_item == 'question_3'){
+    		//		followup_question = "What are the applications of mouse gene " + rnaseq_gene_followup + " in disease and therapeutic treatment?";
+    		//	}
+    		//	
+    		//	var chatgpt_input_tmp = document.createElement("p");
+			//	chatgpt_input_tmp.classList.add("chat_input");
+			//	document.getElementById("chatgpt_panel").prepend(chatgpt_input_tmp);
+			//	chatgpt_input_tmp.innerHTML = '<b>Prompt: </b>' + followup_question;
+			//	chatgpt_all_outputs.push(followup_question)
+			//	
+			//	var chatgpt_output_tmp = document.createElement("p");
+			//	chatgpt_output_tmp.classList.add("chat_output");
+			//	var chatgpt_output_tmp_id = Date.now();				
+			//	chatgpt_output_tmp.setAttribute("id", "p" + chatgpt_output_tmp_id);
+			//	chatgpt_output_tmp.setAttribute("style", "display:none;");
+			//	document.getElementById("chatgpt_panel").prepend(chatgpt_output_tmp);
+			//	chatgpt_output_tmp.innerHTML = '<b>ChatGPT: </b><span id="' + chatgpt_output_tmp_id + '"></span>';
+    		//	
+    		//	var chatgpt_results_followup = [];
+    		//	var spinner_followup = '<div class="spinner-border text-secondary" role="status"><span class="sr-only">Loading...</span></div>';
+    		//	$("#chatgpt_spinner_followup").html(spinner_followup);
+    		//	document.getElementById('chatgpt_spinner_followup').style.display = 'inline';
+    		//	
+    		//	setTimeout(function(){
+			//	 	$.ajax({                                         
+			//		type: 'POST',      
+			//		url: 'get_chatgpt.php',
+			//		data: {'chatgpt_all_outputs': chatgpt_all_outputs},
+			//		async: false
+			//	}).done(function(response) {
+			//			document.getElementById('chatgpt_spinner_followup').style.display = 'none';
+			//			document.getElementById("p" + chatgpt_output_tmp_id).style.display = 'block';
+			//	 		chatgpt_output_followup = response;
+			//	 		chatgpt_results_followup[0] = response.replaceAll(/[\r\n]+/g, "^1000<br>");
+			//	 		chatgpt_all_outputs.push(response);
+			//	 		var instance = new Typed(document.getElementById(chatgpt_output_tmp_id), {
+			//	  	  	  strings: chatgpt_results_followup,
+			//	  	  	  typeSpeed: 5,
+			//	  	  	  onComplete: function(self) {
+			//	  		  	  self.cursor.remove();
+			//	  	  	}
+			//	  	});
+			//	  	//$.ajax({                                         
+			//		//	    type: 'POST',      
+			//		//	    url: 'save_chatgpt_logs.php',               
+			//		//	    data: { 'gene': hashtable_synonyms[rnaseq_gene_followup], 'prompt': followup_question, 'chatgpt_output': chatgpt_output_followup },
+			//		//	    cache: false
+		    //    	//});
+		    //    	$.ajax({                                         
+			//			type: 'POST',      
+			//			url: 'save_chatgpt_chat_logs.php',               
+			//			data: { 'gene': hashtable_synonyms[rnaseq_gene_followup], 'prompt': followup_question + " Please summarize within 200 words in one paragraph.", 'chatgpt_output': chatgpt_output_followup, 'chatgpt_user_id': chatgpt_user_id },
+			//			cache: false
+		    //    	});
+			//	 });			        
+			//	},50);
+    		//});
+    		
+    		$("#chat_input_send_btn").click(function(){
+    			var rnaseq_gene_followup = $("#rnaseq_Gene").val();
+    			var followup_question = document.getElementById("chat_input_form").value;
+    			
+    			var chatgpt_input_tmp = document.createElement("p");
+				chatgpt_input_tmp.classList.add("chat_input");
+				document.getElementById("chatgpt_panel").prepend(chatgpt_input_tmp);
+				chatgpt_input_tmp.innerHTML = '<b>Prompt: </b>' + followup_question;
+				scroll_chat_to_newest();
+				chatgpt_all_outputs.push(followup_question)
+				
+    			var selectedAI = $('input[name="ai_option"]:checked').val();
+    			
+    			if (selectedAI === 'chatgpt') {
+    				// Call ChatGPT only
+    				callFollowupChatGPT(followup_question, rnaseq_gene_followup);
+    			} else if (selectedAI === 'claude') {
+    				// Call Claude only
+    				callFollowupClaude(followup_question, rnaseq_gene_followup);
+    			} else if (selectedAI === 'both') {
+    				// Call both ChatGPT and Claude
+    				callFollowupBothAI(followup_question, rnaseq_gene_followup);
+    			}	
+    		});
+    		
+    		chat_input_form.addEventListener("keypress", function(event) {
+			  if (event.key === "Enter") {
+			    event.preventDefault();
+			    document.getElementById("chat_input_send_btn").click();
+			  }
+			});
+			
+			window.addEventListener('load', function() {
+				document.getElementById('rnaseq_submit').click();
+			});
+		////////////////////////////////////////////////////////////////
+		
+    		//$(document).ready(function() {
+    			//window.onload = function(){
+    			//	alert("hello");
+    			//	document.getElementById('rnaseq_submit').click();
+    			//	button.form.submit();
+    			//}
+    			    			
+    			$("#rnaseq_submit").click(function(){
+    			
+    			document.getElementById('rnaseq_population_tree').style.display = 'none';
+    				document.getElementById('rnaseq_population_OSMNP_tree').style.display = 'none';
+    				document.getElementById('rnaseq_population_tree_by_organ').style.display = 'none';
+    				document.getElementById('rnaseq_population_OSMNP_tree_by_organ').style.display = 'none';
+    				document.getElementById('rnaseq_population_CGC_tree').style.display = 'none';
+    				document.getElementById('rnaseq_population_IC_tree').style.display = 'none';
+    				document.getElementById('rnaseq_population_tree_by_cytokine_CGC').style.display = 'none';
+    				document.getElementById('rnaseq_population_tree_by_cytokine_IC').style.display = 'none';
+    				document.getElementById('rnaseq_population_iTP_tree').style.display = 'none';
+    				    				
+    				var rnaseq_gene, rnaseq_gene_source, rnaseq_datagroup;
+    				var rnaseq_gene_input = $("#rnaseq_Gene").val();
+    				var rnaseq_gene_url = <?php echo skyline_js_string($gene) ?>;
+    				var rnaseq_datagroup_url = <?php echo skyline_js_string($datagroup) ?>;
+    				
+    				if((rnaseq_datagroup_url=='None')||(rnaseq_datagroup_url_toggle == 1)){
+    					rnaseq_datagroup = $("#rnaseq_datagroup_list").val();
+    				} else {
+    					rnaseq_datagroup = rnaseq_datagroup_url;
+    					rnaseq_datagroup_select_suppress = true;
+    					$('#rnaseq_datagroup_list').selectpicker('val', rnaseq_datagroup_url);
+    					$('#rnaseq_datagroup_list').selectpicker('refresh');
+    					refresh_rnaseq_genelist();
+    					rnaseq_datagroup_select_suppress = false;
+    					rnaseq_datagroup_url_toggle = 1;
+    				}
+
+    				// Update left margin dynamically based on selected data group
+    				if (rnaseq_datagroup == 'immgenT Pseudobulk') {
+    					margin.left = 120;  // smaller left margin for immgenT Pseudobulk
+    				} else {
+    					margin.left = 220;  // default left margin for other groups
+    				}
+    				// Recompute plot width and update SVG width so layout stays consistent
+    				width = document.getElementById("chart").offsetWidth - margin.left - margin.right;
+    				chart.attr("width", width + margin.left + margin.right - 40);
+    				
+    				if((rnaseq_gene_url=='None')&&!rnaseq_gene_input){
+    					if(rnaseq_datagroup == 'immgenT Pseudobulk'){
+    						rnaseq_gene = random_immgenT_pseudobulk_gene();
+    					} else if(rnaseq_datagroup == 'ImmGen ULI RNASeq' || rnaseq_datagroup == 'ImmGen MNP OpenSource'){
+    						rnaseq_gene = gene_info_gencode_GRCm38_protein_coding[Math.floor(Math.random() * gene_info_gencode_GRCm38_protein_coding.length)];
+    					} else if(rnaseq_datagroup == 'ImmGen CGC'){
+    						rnaseq_gene = gene_info_gencode_GRCm38_protein_coding_CGC[Math.floor(Math.random() * gene_info_gencode_GRCm38_protein_coding_CGC.length)];
+    					} else if(rnaseq_datagroup == 'ImmGen Cytokines Inflammatory'){
+    						rnaseq_gene = gene_info_gencode_GRCm38_protein_coding_IC[Math.floor(Math.random() * gene_info_gencode_GRCm38_protein_coding_IC.length)];
+    					}
+    					rnaseq_gene_source = "Random";
+    				}
+    				else if(rnaseq_gene_url!='None'){
+    					if(rnaseq_gene_input){
+    						rnaseq_gene = rnaseq_gene_input;
+    						rnaseq_gene_source = "Input";
+    					}
+    					else {
+    						rnaseq_gene = rnaseq_gene_url;
+    						rnaseq_gene_source = "URL";
+    					}
+    				}
+    				else if(rnaseq_gene_url=='None'){
+    					if(rnaseq_gene_input){
+    						rnaseq_gene = rnaseq_gene_input;
+    						rnaseq_gene_source = "Input";
+    					}
+    					else {
+    						if(rnaseq_datagroup == 'immgenT Pseudobulk'){
+    							rnaseq_gene = random_immgenT_pseudobulk_gene();
+    						} else {
+    							rnaseq_gene = gene_info_gencode_GRCm38_protein_coding[Math.floor(Math.random() * gene_info_gencode_GRCm38_protein_coding.length)];
+    						}
+    						rnaseq_gene_source = "Random";
+    					}
+    				}
+    				document.getElementById('rnaseq_Gene').value=rnaseq_gene;
+    				
+				var rnaseq_scale_option = $("#rnaseq_scaling_list").val();
+				var rnaseq_population_option = $("#rnaseq_population_list label.active input").val();
+				var rnaseq_population;
+				
+			if(rnaseq_datagroup == 'ImmGen ULI RNASeq'){
+				if(rnaseq_population_option=='Select the populations of interest'){
+					rnaseq_population = $("#rnaseq_group").text();
+				}
+				else if(rnaseq_population_option=='Select the populations of interest by organs'){
+					rnaseq_population = $("#rnaseq_group_by_organ").text();
+				}
+				document.getElementById('CGC_legend').style.display="none";
+				document.getElementById('IC_legend').style.display="none";
+				document.getElementById('immgen_uli_rnaseq_save_option').style.display="";
+				document.getElementById('immgen_OSMNP_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_CGC_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_IC_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_iTP_uli_rnaseq_save_option').style.display="none";
+			}
+			else if(rnaseq_datagroup == 'ImmGen MNP OpenSource'){
+				if(rnaseq_population_option=='Select the populations of interest'){
+					rnaseq_population = $("#rnaseq_OSMNP_group").text();
+				}
+				else if(rnaseq_population_option=='Select the populations of interest by organs'){
+					rnaseq_population = $("#rnaseq_OSMNP_group_by_organ").text();
+				}
+				document.getElementById('CGC_legend').style.display="none";
+				document.getElementById('IC_legend').style.display="none";
+				document.getElementById('immgen_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_OSMNP_uli_rnaseq_save_option').style.display="";
+				document.getElementById('immgen_CGC_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_IC_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_iTP_uli_rnaseq_save_option').style.display="none";
+			}
+			else if(rnaseq_datagroup == 'ImmGen CGC'){
+				if(rnaseq_population_option=='Select the populations of interest'){
+					rnaseq_population = $("#rnaseq_group_CGC").text();
+				}
+				else if(rnaseq_population_option=='Select the populations of interest by cytokine'){
+					rnaseq_population = $("#rnaseq_group_CGC_by_cytokine").text();
+				}
+				document.getElementById('CGC_legend').style.display="";
+				document.getElementById('IC_legend').style.display="none";
+				document.getElementById('immgen_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_OSMNP_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_CGC_uli_rnaseq_save_option').style.display="";
+				document.getElementById('immgen_IC_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_iTP_uli_rnaseq_save_option').style.display="none";
+			}
+			else if(rnaseq_datagroup == 'ImmGen Cytokines Inflammatory'){
+				if(rnaseq_population_option=='Select the populations of interest'){
+					rnaseq_population = $("#rnaseq_group_IC").text();
+				}
+				else if(rnaseq_population_option=='Select the populations of interest by cytokine'){
+					rnaseq_population = $("#rnaseq_group_IC_by_cytokine").text();
+				}
+				document.getElementById('CGC_legend').style.display="none";
+				document.getElementById('IC_legend').style.display="";
+				document.getElementById('immgen_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_OSMNP_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_CGC_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_IC_uli_rnaseq_save_option').style.display="";
+				document.getElementById('immgen_iTP_uli_rnaseq_save_option').style.display="none";
+			}
+			else if(rnaseq_datagroup == 'immgenT Pseudobulk'){
+				if(rnaseq_population_option=='Select the populations of interest'){
+					rnaseq_population = $("#rnaseq_group_iTP").text();
+				}
+				document.getElementById('CGC_legend').style.display="none";
+				document.getElementById('IC_legend').style.display="none";
+				document.getElementById('immgen_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_OSMNP_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_CGC_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_IC_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_iTP_uli_rnaseq_save_option').style.display="";
+			}
+			
+			
+			document.getElementById('link_option').style.display="";
+				
+				description1 = "Gene: " + rnaseq_gene;
+				description2 = "Expression Value Normalized by DESeq2";
+				
+				if(((rnaseq_population_option=='Select the populations of interest')||((rnaseq_population_option=='Select the populations of interest by organs'))||((rnaseq_population_option=='Select the populations of interest by cytokine')))&&(!rnaseq_population)) {
+					$("#AlertModal_population").modal('show');
+				}
+			else if(((rnaseq_datagroup == 'ImmGen ULI RNASeq' || rnaseq_datagroup == 'ImmGen MNP OpenSource' || rnaseq_datagroup == 'immgenT Pseudobulk')&&(($('#alias_option').is(':checked')&&(gene_info_gencode_GRCm38_synonyms.indexOf(rnaseq_gene) == -1))||(!$('#alias_option').is(':checked')&&(gene_info_gencode_GRCm38.indexOf(rnaseq_gene) == -1))))||((rnaseq_datagroup == 'ImmGen CGC')&&(($('#alias_option').is(':checked')&&(gene_info_gencode_GRCm38_synonyms_CGC.indexOf(rnaseq_gene) == -1))||(!$('#alias_option').is(':checked')&&(gene_info_gencode_GRCm38_CGC.indexOf(rnaseq_gene) == -1))))||((rnaseq_datagroup == 'ImmGen Cytokines Inflammatory')&&(($('#alias_option').is(':checked')&&(gene_info_gencode_GRCm38_synonyms_IC.indexOf(rnaseq_gene) == -1))||(!$('#alias_option').is(':checked')&&(gene_info_gencode_GRCm38_IC.indexOf(rnaseq_gene) == -1))))){
+				chart.selectAll("*").remove();
+				document.getElementById('CGC_legend').style.display="none";
+				document.getElementById('IC_legend').style.display="none";
+				document.getElementById('immgen_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_OSMNP_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_CGC_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_IC_uli_rnaseq_save_option').style.display="none";
+				document.getElementById('immgen_iTP_uli_rnaseq_save_option').style.display="none";
+				$("#AlertModal_genesymbol").modal('show');
+			}
+				//else if(rnaseq_datagroup == 'ImmGen CGC'){
+				//	if($('#alias_option').is(':checked')){
+				//		if(gene_info_gencode_GRCm38_synonyms_CGC.indexOf(rnaseq_gene) == -1){
+				//			$("#AlertModal_genesymbol").modal('show');
+				//		}
+				//	}
+				//	else {
+				//		if(gene_info_gencode_GRCm38_CGC.indexOf(rnaseq_gene) == -1){
+				//			$("#AlertModal_genesymbol").modal('show');
+				//		}
+				//	}
+				//}
+				//else if(rnaseq_datagroup == 'ImmGen Cytokines Inflammatory'){
+				//	if($('#alias_option').is(':checked')){
+				//		if(gene_info_gencode_GRCm38_synonyms_IC.indexOf(rnaseq_gene) == -1){
+				//			$("#AlertModal_genesymbol").modal('show');
+				//		}
+				//	}
+				//	else {
+				//		if(gene_info_gencode_GRCm38_IC.indexOf(rnaseq_gene) == -1){
+				//			$("#AlertModal_genesymbol").modal('show');
+				//		}
+				//	}
+				//}
+				else {
+					chart.selectAll("*").remove();
+					
+					var jsonText = $.ajax({                                         
+						type: 'POST',      
+						url: 'get_data.php',               
+						data: {'probeset_id': hashtable_synonyms[rnaseq_gene], 'datagroup': rnaseq_datagroup, 'population': rnaseq_population, 'key_population': rnaseq_population_option},
+						async: false
+					}).responseText;
+					
+					
+					if(rnaseq_gene_source == 'URL'){
+						$.ajax({                                         
+								type: 'POST',      
+								url: 'save_logs.php',               
+								data: { 'gene': hashtable_synonyms[rnaseq_gene], 'populations': rnaseq_population, 'datagroup': rnaseq_datagroup, 'key_population': rnaseq_population_option, 'search_type': 'URL' },
+								cache: false
+		        		});
+		        	} else if (rnaseq_gene_source == 'Input'){
+						$.ajax({                                         
+								type: 'POST',      
+								url: 'save_logs.php',               
+								data: { 'gene': hashtable_synonyms[rnaseq_gene], 'populations': rnaseq_population, 'datagroup': rnaseq_datagroup, 'key_population': rnaseq_population_option, 'search_type': 'Input' },
+								cache: false
+		        		});
+		        	}
+		        
+					var results = JSON.parse(jsonText); 
+					console.log(results);
+					var meta_info = results.meta;
+					var kegg_info = results.kegg;
+					var go_info = results.go;
+					var orthology_info = results.orthology;
+					var biolegend_info = results.biolegend;
+					var dataset = results.data;
+					var max = results.max;
+					var pop_group_num = results.pop_group_num;
+					
+					var rowlabel_font_size;
+					if(dataset.length > 0 && dataset.length <= 20) {
+						rowlabel_font_size = 14;
+					} 
+					else if(dataset.length > 20 && dataset.length <= 40) {
+						rowlabel_font_size = 13;
+					} 
+					else if(dataset.length > 40 && dataset.length <= 60) {
+						rowlabel_font_size = 12;
+					}
+					else if(dataset.length > 60 && dataset.length <= 80){
+						rowlabel_font_size = 11;
+					}
+					else if(dataset.length > 80 && dataset.length <= 100){
+						rowlabel_font_size = 10;
+					}
+					else if(dataset.length > 100 && dataset.length <= 120){
+						rowlabel_font_size = 9;
+					}
+					else if(dataset.length > 120 && dataset.length <= 140){
+						rowlabel_font_size = 8;
+					}
+					else if(dataset.length > 140 && dataset.length <= 160){
+						rowlabel_font_size = 7;
+					}
+					else {
+						rowlabel_font_size = 6;
+					}
+					
+					document.getElementById('rnaseq_meta_info').style.display="";
+					document.getElementById('chart_card').setAttribute("class", "col-12 col-lg-8 card border-0 shadow p-3 mb-5 bg-white rounded");
+					$('html,body').animate({ scrollTop: $("#hr").offset().top},'slow');
+					//document.getElementById('rnaseq_summary_note').style.display="";
+					//document.getElementById('rnaseq_go_note').style.display="";
+					//document.getElementById('rnaseq_save_option').style.display="";
+					document.getElementById('rnaseq_gene_symbol').innerHTML = meta_info["Gene_Symbol_MGI"];
+					document.getElementById('rnaseq_gene_name').innerHTML = meta_info["GeneName"];
+					document.getElementById('rnaseq_synonyms').innerHTML = meta_info["Synonyms"].replace(/\|/g, "; ");
+					document.getElementById('rnaseq_type').innerHTML = meta_info["Feature_type"];
+					document.getElementById('rnaseq_linkout').innerHTML = "";
+					if(!orthology_info["Summary"] || orthology_info["Summary"] == 'NA'){
+						document.getElementById('rnaseq_summary').innerHTML = 'NA';
+						document.getElementById("rnaseq_summary").style.height = "auto";
+					}
+					else {
+						document.getElementById('rnaseq_summary').innerHTML = orthology_info["Summary"];
+						if(window.outerHeight <= 800){
+							document.getElementById("rnaseq_summary").style.height = "80px";
+						}
+						else {
+							document.getElementById("rnaseq_summary").style.height = "180px";	
+						}
+					}
+					if(meta_info["Chr"] == 'NA' ) {
+						document.getElementById('rnaseq_seq_map').innerHTML = 'NA';
+					}
+					else {
+						document.getElementById('rnaseq_seq_map').innerHTML = 'Chr' + meta_info["Chr"] + ':' + meta_info["Start"] + '-' + meta_info["End"] + ', ' + meta_info["Strand"] + ' strand';
+					}
+					if(meta_info["Entrez_Gene_ID"] == 'NA'){
+						//document.getElementById('rnaseq_ncbi_id').innerHTML = 'NA';
+					}
+					else {
+						document.getElementById('rnaseq_linkout').innerHTML = '<a href="https://www.ncbi.nlm.nih.gov/gene/' + meta_info["Entrez_Gene_ID"] + '" target="_blank"><img src="images/ncbi_logo.jpg" alt="NCBI" height="35" title="NCBI"></a>';
+					
+					}
+					if(meta_info["Ensembl_ID"] == 'NA'){
+						//document.getElementById('rnaseq_ensembl_id').innerHTML = 'NA';
+					}
+					else {
+						document.getElementById('rnaseq_linkout').innerHTML += '&emsp;<a href="https://www.ensembl.org/Mus_musculus/geneview?gene=' + meta_info["Ensembl_ID"] + '" target="_blank"><img src="images/ensembl_logo.png" alt="Ensembl" height="30" title="Ensembl"></a>';
+					}
+					//if(meta_info["MGI_ID"] == 'NA'){
+					//	document.getElementById('rnaseq_MGI_id').innerHTML = 'NA';
+					//}
+					//else{
+					//	document.getElementById('rnaseq_MGI_id').innerHTML = '<a href="https://www.informatics.jax.org/marker/' + meta_info["MGI_ID"] + '" target="_blank">' + meta_info["MGI_ID"] + '</a>';
+					//}
+					if(!orthology_info["Human_GeneSymbol"] || orthology_info["Human_GeneSymbol"] == 'NA'){
+						human_orthology_gene = orthology_info["Human_GeneSymbol"];
+						document.getElementById('rnaseq_human_orthology').innerHTML = 'NA';
+					}
+					else{
+						human_orthology_gene = orthology_info["Human_GeneSymbol"];
+						document.getElementById('rnaseq_human_orthology').innerHTML = '<a href="https://www.ncbi.nlm.nih.gov/gene/' + orthology_info["Human_EntrezID"] + '" target="_blank">' + orthology_info["Human_GeneSymbol"] + '</a>';
+					}
+					//document.getElementById('rnaseq_wikipedia_id').innerHTML = '<a href="https://en.wikipedia.org/wiki/' + meta_info["Gene_Symbol"] + '" target="_blank">' + meta_info["Gene_Symbol"] + '</a>';
+					//document.getElementById('rnaseq_linkout').innerHTML += '&emsp;<a href="https://www.wikigenes.org/e/gene/e/' + meta_info["Entrez_Gene_ID"] + '.html" target="_blank"><img src="images/wikigenes_logo.gif" alt="WikiGenes" height="30" title="WikiGenes"></a>';
+					document.getElementById('rnaseq_linkout').innerHTML += '&emsp;<a href="https://www.alliancegenome.org/gene/' + meta_info["MGI_ID"] + '" target="_blank"><img src="images/alliance_logo.jpg" alt="Alliance" height="28" title="Alliance"></a>';
+					document.getElementById('rnaseq_linkout').innerHTML += '&NewLine;&emsp;<a href="https://www.proteinatlas.org/' + orthology_info["Human_EnsemblID"] + '-' + orthology_info["Human_GeneSymbol"] + '" target="_blank"><img src="images/HPA_logo.png" alt="HPA" height="20" title="The Human Protein Atlas"></a>';
+					
+					if(biolegend_info["Pathway"]){
+						document.getElementById('rnaseq_linkout').innerHTML += '&emsp;<a href="https://www.biolegend.com/en-us/' + biolegend_info["Pathway"] + '" target="_blank"><img src="images/biolegend_logo.png" alt="BioLegend" height="30" title="BioLegend"></a>';
+					}
+					//document.getElementById('rnaseq_GO').innerHTML = '<p><a href="https://www.informatics.jax.org/go/marker/' + meta_info["MGI_ID"] + '#tabular" target="_blank">Tablular View</a></p><p><a href="https://www.informatics.jax.org/marker/gograph/' + meta_info["MGI_ID"] + '" target="_blank">Graph View</a></p>';
+					var go_text='';
+					for(var g = 0; g < go_info.length; g++){
+						go_text = go_text + '<a href="https://amigo.geneontology.org/amigo/term/' + go_info[g]['go_id'] + '" target="_blank">' + go_info[g]['go_name'] + ' (' + go_info[g]['go_category'] + ')</a><br>';
+					}
+					if(go_info.length){
+						document.getElementById('rnaseq_GO').innerHTML = go_text;
+						if(window.outerHeight <= 800){
+							document.getElementById("rnaseq_GO").style.height = "85px";
+						}
+						else {
+							document.getElementById("rnaseq_GO").style.height = "180px";
+						}						
+						document.getElementById('rnaseq_GO_showAll').style.display="";
+					}
+					else{
+						document.getElementById('rnaseq_GO').innerHTML = 'N/A';
+						document.getElementById("rnaseq_GO").style.height = "auto";
+						document.getElementById('rnaseq_GO_showAll').style.display="none";
+					}
+					document.getElementById('rnaseq_GO_showAll').innerHTML = '<p><b>Show All:</b>&#9;&#9;<a href="https://www.informatics.jax.org/go/marker/' + meta_info["MGI_ID"] + '#tabular" target="_blank">Tablular View</a>&#9;|&#9;<a href="https://www.informatics.jax.org/marker/gograph/' + meta_info["MGI_ID"] + '" target="_blank">Graph View</a></p>';
+					
+					var kegg_text='';
+					for(var k = 0; k < kegg_info.length; k++){
+						kegg_text = kegg_text + '<a href="https://www.genome.jp/kegg-bin/show_pathway?' + kegg_info[k]['kegg_id'] + '+' + meta_info["Entrez_Gene_ID"] + '" target="_blank">' + kegg_info[k]['kegg_name'] + '</a><br>';
+					}
+					if(kegg_info.length){
+						document.getElementById('rnaseq_kegg').innerHTML = kegg_text;
+						
+						if(window.outerHeight <= 800){
+							document.getElementById("rnaseq_kegg").style.height = "85px";
+						}
+						else {
+							document.getElementById("rnaseq_kegg").style.height = "150px";
+						}
+					}
+					else{
+						document.getElementById('rnaseq_kegg').innerHTML = 'N/A';
+						document.getElementById("rnaseq_kegg").style.height = "auto";
+					}
+					
+					//////////////////////////////////////////////////////////////////////////////
+					var yScale = d3.scaleBand()
+							.domain(dataset.map(function(d) { return d.short_name; }))
+							.rangeRound([0, height]);
+    				                                
+					var xScale;
+					if(rnaseq_scale_option =='Local'){
+						xScale = d3.scaleLinear().nice()
+    							.domain([0, d3.max(dataset, function(d) { return d.value; })>0.1 ? d3.max(dataset, function(d) { return d.value; })*1.05 : 10]) 
+    							.range([0, width]);
+    					}
+    					else if(rnaseq_scale_option =='Global'){
+						xScale = d3.scaleLinear().nice()
+    							.domain([0, max]) 
+    							.range([0, width]);
+    					}
+    					else if(rnaseq_scale_option =='Local (log10)'){
+						xScale = d3.scaleLog().base(10).nice()
+    							.domain([1, d3.max(dataset, function(d) { return d.value; })>0.1 ? d3.max(dataset, function(d) { return d.value; })*2 : 10]) 
+    							.range([0, width]);
+    					}
+    					else if(rnaseq_scale_option =='Global (log10)'){
+						xScale = d3.scaleLog().base(10).nice()
+    							//.domain([0, d3.max(dataset, function(d) { if(d.type == 'max') return d.value; })*1.05]) 
+    							.domain([1, max*2]) 
+    							.range([0, width]);
+    					}
+    					
+    					var geneTextLabel = chart.append("text")
+    						.attr("x", width/2 + margin.left)             
+    						.attr("y", margin.top/5)
+    						.attr("text-anchor", "middle")
+    						.style("font-size", "15px")
+    						.style("font-weight", "bold")
+    						.style("font-family", "sans-serif")
+    						.text(description1)
+    						.on("mouseover", function(d) {
+    							d3.select(this).style("fill", "blue");
+    							d3.select(this).style("font-size", "16px");
+    							d3.select(this).style("cursor", "hand");
+    						})
+    						.on("mouseout", function(d) {
+    							d3.select(this).style("fill", "black");
+    							d3.select(this).style("font-size", "15px");
+    						})
+    						.on("click", function(){
+    							if(rnaseq_gene.includes('Alias')){
+    								window.open("https://www.ncbi.nlm.nih.gov/gene/?term=" + rnaseq_gene.split("Alias of ")[1].slice(0,-1), '_blank');
+    								window.focus();
+    							}
+    							else {
+    								window.open("https://www.ncbi.nlm.nih.gov/gene/?term=" + rnaseq_gene, '_blank');
+    								window.focus();
+    							}
+    						});
+
+    					// Only show \"Click to show gene information\" tooltip for ULI and MNP data groups
+    					if(rnaseq_datagroup == 'ImmGen ULI RNASeq' || rnaseq_datagroup == 'ImmGen MNP OpenSource') {
+    						geneTextLabel
+    							.append('title')
+    							.text("Click to show gene information");
+    					}
+    						
+    					chart.append("text")
+    						.attr("x", width/2 + margin.left)             
+    						.attr("y", 3*margin.top/5)
+    						.attr("text-anchor", "middle")
+    						.style("font-size", "13px")
+    						.style("font-family", "sans-serif")
+    						.text(description2);		
+    					
+    					var exprRangeLabelBaseY = height + margin.top + margin.bottom - 30;
+    					var exprRangeLabelX = (rnaseq_datagroup == 'immgenT Pseudobulk') ? (margin.left - 48) : (margin.left - 85);
+    					var exprRangeLabel = chart.append("text")
+    						//.attr("x", width/2 + margin.left)
+    						.attr("x", exprRangeLabelX)
+    						.attr("y", exprRangeLabelBaseY)
+    						.attr("text-anchor", "middle")
+    						.style("font-weight", "bold")
+    						.style("font-size", "13px")
+    						.style("font-family", "sans-serif")
+    						.on("mouseover", function(d) {
+    							d3.select(this).style("font-size", "14px");
+    							var xPosition = d3.event.pageX+10;  
+    							var yPosition = d3.event.pageY+10;
+    							if((window.innerWidth-xPosition) < 400) xPosition = xPosition - 100;                                                                 
+    							if((window.innerHeight-yPosition) < 150) yPosition = yPosition - 60;
+    							
+  	             				d3.select("#tooltip_legend_label")
+  	             				  .style("left", xPosition + "px")
+  	             				  .style("top",  yPosition + "px")
+  	             				  .select("#legend_label")
+  	             				  .text("ImmGen gene expression data are normalized using DEseq2, ranging from zero to ~50,000. As such, they are not formally keyed to any particular metric like FPKM, etc. However, the summed values for all transcripts in one cell-type are usually close to 10^6, such that they are roughly comparable to TPMs (Transcripts Per Million). The range shown here is empirical and meant as a generic indication, and its significance depends on the family to which the transcript belongs.");
+  	             				  
+  	             				//Show the tooltip
+  	             				d3.select("#tooltip_legend_label").classed("hidden", false);
+  	             						
+    						})
+    						.on("mouseout", function(d) {
+    							d3.select(this).style("font-size", "13px");    							
+    							d3.select("#tooltip_legend_label").classed("hidden", true); 
+    						});
+    					if (rnaseq_datagroup == 'immgenT Pseudobulk') {
+    						exprRangeLabel.attr("y", exprRangeLabelBaseY - 8);
+    						exprRangeLabel.append("tspan")
+    							.attr("x", exprRangeLabelX)
+    							.attr("dy", "0")
+    							.text("Expression");
+    						exprRangeLabel.append("tspan")
+    							.attr("x", exprRangeLabelX)
+    							.attr("dy", "1.15em")
+    							.text("Value Range");
+    					} else {
+    						exprRangeLabel.text("Expression Value Range");
+    					}
+    					    							
+    					var legend_bar = chart.append("g").attr("class","g2")
+    							.selectAll(".legendg")
+    							.data(datavars)  
+    							.enter()
+    							.append("rect")
+						.attr("width", function(d){ return xScale(d);})
+						.attr("x", function(d, i){ 
+							if((rnaseq_scale_option =='Global (log10)')||(rnaseq_scale_option =='Local (log10)')){
+								return margin.left + xScale(prev_width_log[i]);
+							}
+							else {
+								return margin.left + xScale(prev_width[i]);
+							}
+						})
+						.attr("fill", function(d, i){ return colors[i]; })
+						.attr("y", margin.top + height + 15)
+						.attr("height", 20)
+						.on("mouseover", function(d, i) {
+    						
+    							var xPosition = d3.event.pageX+10;  
+    							var yPosition = d3.event.pageY+10;
+    							if((window.innerWidth-xPosition) < 400) xPosition = xPosition - 100;                                                                 
+    							if((window.innerHeight-yPosition) < 150) yPosition = yPosition - 60;
+    							
+    								d3.select(this).style("fill", "#454545");
+    								
+    								//Update the tooltip position and value
+  	             						d3.select("#tooltip_legend")
+  	             						  .style("left", xPosition + "px")
+  	             						  .style("top",  yPosition + "px")
+  	             						  .select("#level")
+  	             						  .text(legend[i][0]);      
+  	             						
+  	             						  d3.select("#tooltip_legend")
+  	             						  .style("left", xPosition + "px")
+  	             						  .style("top",  yPosition + "px")
+  	             						  .select("#level_range")
+  	             						  .text(legend[i][1]); 
+  	             						  
+  	             						//Show the tooltip
+  	             						d3.select("#tooltip_legend").classed("hidden", false);
+    							//}
+    						})
+    						.on("mouseout", function(d,i) {
+    							
+    							d3.select(this).style("fill", colors[i]);
+    							d3.select("#tooltip_legend").classed("hidden", true);  
+    						});
+						
+    					var xAxis;
+    					if((rnaseq_scale_option =='Global (log10)')||(rnaseq_scale_option =='Local (log10)')){
+    						xAxis = d3.axisTop()
+    							.scale(xScale)
+    							.tickSizeInner(-height)
+    							.tickSizeOuter(0)
+    							.tickPadding(5)
+    							.tickFormat(d3.format(",d"))
+    							.tickValues([1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000]);
+    					}
+    					else {
+    						xAxis = d3.axisTop()
+    							.scale(xScale)
+    							.tickSizeInner(-height)
+    							.tickSizeOuter(0)
+    							.tickPadding(5)
+    							.tickFormat(d3.format(",d"))
+    							.ticks(Math.min(10, (xScale.domain()[1] - xScale.domain()[0])));
+    					}
+    					
+    					var yAxis = d3.axisLeft()                         
+    							.scale(yScale);    					
+    					
+    					var bar = chart.append("g").attr("class","g1")
+    							.selectAll(".barg")
+    							.data(dataset)  
+    							.enter()
+    							.append("rect")
+    							.attr("transform", function(d, i){
+    								return "translate(0, "+yScale(d.short_name)+")";
+    							})
+    						.attr("y", function(d,i){
+    							return  margin.top + yScale.bandwidth()/16;
+    						})
+    						.attr("height", yScale.bandwidth()*7/8)
+    						.attr("x", margin.left)
+    						.style("fill", function(d) { if(pop_group_num>1) { return d.color;} else { return d.color_unique_set;} })
+    						.on("mouseover", function(d) {
+    						
+    							var xPosition = d3.event.pageX+10;  
+    							var yPosition = d3.event.pageY+10;
+    							if((window.innerWidth-xPosition) < 400) xPosition = xPosition - 400;                                                                 
+    							if((window.innerHeight-yPosition) < 150) yPosition = yPosition - 150;
+    							
+    								d3.select(this).style("fill", "#454545");
+    								//d3.select(this).style("cursor", "hand");
+    								//Update the tooltip position and value
+    	             						if(rnaseq_datagroup == 'immgenT Pseudobulk') {
+    	             							// immgenT Pseudobulk: show only population + expr rows
+    	             							d3.select("#tooltip_population_row").style("display", "");
+    	             							d3.select("#tooltip_expr_row").style("display", "");
+    	             							d3.select("#tooltip_long_name_row").style("display", "none");
+    	             							d3.select("#tooltip_desc_row").style("display", "none");
+    	             							d3.select("#tooltip_author_row").style("display", "none");
+    	             							d3.select("#tooltip_number_row").style("display", "none");
+
+    	             							d3.select("#tooltip")
+    	             							  .style("left", xPosition + "px")
+    	             							  .style("top",  yPosition + "px")
+    	             							  .style("width", "180px")
+    	             							  .style("max-width", "180px")
+    	             							  .select("#population")
+    	             							  .text(d.short_name);
+    	             							
+    	             							d3.select("#tooltip")
+    	             							  .style("left", xPosition + "px")
+    	             							  .style("top", yPosition + "px")
+    	             							  .style("width", "180px")
+    	             							  .style("max-width", "180px")
+    	             							  .select("#expr_value")
+    	             							  .text(d.value);
+    	             						}
+    	             						else {
+    	             							// Default behaviour for other data groups: show all rows
+    	             							d3.select("#tooltip_population_row").style("display", "");
+    	             							d3.select("#tooltip_expr_row").style("display", "");
+    	             							d3.select("#tooltip_long_name_row").style("display", "");
+    	             							d3.select("#tooltip_desc_row").style("display", "");
+    	             							d3.select("#tooltip_author_row").style("display", "");
+    	             							d3.select("#tooltip_number_row").style("display", "");
+    	             							d3.select("#tooltip")
+    	             							  .style("left", xPosition + "px")
+    	             							  .style("top",  yPosition + "px")
+    	             							  .style("width", null)
+    	             							  .style("max-width", null)
+    	             							  .select("#population")
+    	             							  .text(d.short_name);      
+    	             							
+    	             							d3.select("#tooltip")
+    	             							  .style("left", xPosition + "px")
+    	             							  .style("top", yPosition + "px")
+    	             							  .style("width", null)
+    	             							  .style("max-width", null)
+    	             							  .select("#expr_value")
+    	             							  .text(d.value);
+    	             							  
+    	             							d3.select("#tooltip")
+    	             							  .style("left", xPosition + "px")
+    	             							  .style("top", yPosition + "px")
+    	             							  .select("#long_name")
+    	             							  .text(d.long_name);
+    	             							
+    	             							d3.select("#tooltip")
+    	             							  .style("left", xPosition + "px")
+    	             							  .style("top", yPosition + "px")
+    	             							  .select("#desc")
+    	             							  .text(d.description);
+    	             							  
+    	             							d3.select("#tooltip")
+    	             							  .style("left", xPosition + "px")
+    	             							  .style("top", yPosition + "px")
+    	             							  .select("#author")
+    	             							  .text(d.author);
+    	             							  
+    	             							d3.select("#tooltip")
+    	             							  .style("left", xPosition + "px")
+    	             							  .style("top", yPosition + "px")
+    	             							  .select("#number_of_sample")
+    	             							  .text(d.number_of_sample);
+    	             						}
+  	             						  
+  	             						  
+  	             						//Show the tooltip
+  	             						d3.select("#tooltip").classed("hidden", false);
+    							//}
+    						})
+    						.on("mouseout", function(d) {
+    							
+    							d3.select(this).style("fill", function(d) { if(pop_group_num>1) { return d.color;} else { return d.color_unique_set;} });
+    							d3.select("#tooltip").classed("hidden", true);  
+    						})
+    						.transition().delay(function (d,i){ return Math.floor(i/2) * 30;})
+    						.duration(500)
+    						.attr("width", function(d) { 
+    							if((rnaseq_scale_option =='Global (log10)')||(rnaseq_scale_option =='Local (log10)')){
+    								if((xScale(d.value) - xScale(1)) > 0) {
+    									return xScale(d.value) - xScale(1); 
+    								}
+    								else {
+    									return 0;
+    								}
+    							}
+    							else {
+    								return xScale(d.value) - xScale(d.start); 
+    							}
+    						});
+    					
+    					    						
+    					var x_axis = chart.append("g")
+    							.attr("class", "x axis")
+    							.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+    							.style("font-size", "10.5px")
+    							.call(xAxis);
+    					
+    					var y_axis = chart.append("g")
+    							.attr("class", "y axis")
+    							.attr("transform", function(d,i){
+    								return  "translate(" + margin.left + "," + margin.top + ")";
+    							})
+    							.style("font-size", rowlabel_font_size + "px")
+    							.call(yAxis);
+    				                                                                                                                 
+    				// Only show \"Click to show sorting information\" for ULI and MNP data groups
+    				if(rnaseq_datagroup == 'ImmGen ULI RNASeq' || rnaseq_datagroup == 'ImmGen MNP OpenSource') {
+    					d3.selectAll('.y.axis .tick')
+    						.append('title')
+    						.text("Click to show sorting information");
+    				}
+ 					
+ 					d3.selectAll('.y.axis .tick')
+ 						.data(dataset)
+ 						.on("mouseover", function(d) {
+ 							var xPosition = d3.event.pageX+10;  
+    							var yPosition = d3.event.pageY+10;
+    							if((window.innerWidth-xPosition) < 400) xPosition = xPosition - 400;                                                                 
+    							if((window.innerHeight-yPosition) < 150) yPosition = yPosition - 150;
+    							
+    								if(rnaseq_datagroup == 'immgenT Pseudobulk') {
+    									// immgenT Pseudobulk: show only population row on y-axis tooltip
+    									d3.select("#tooltip_y_axis_population_row").style("display", "");
+    									d3.select("#tooltip_y_axis_long_name_row").style("display", "none");
+    									d3.select("#tooltip_y_axis_desc_row").style("display", "none");
+    									d3.select("#tooltip_y_axis_author_row").style("display", "none");
+    									d3.select("#tooltip_y_axis_number_row").style("display", "none");
+
+    									d3.select("#tooltip_y_axis")
+    	             						  .style("left", xPosition + "px")
+    	             						  .style("top",  yPosition + "px")
+    	             						  .style("width", "180px")
+    	             						  .style("max-width", "180px")
+    	             						  .select("#population_y_axis")
+    	             						  .text(d.short_name);
+    								}
+    								else {
+    									// Default behaviour for other data groups: show all rows
+    									d3.select("#tooltip_y_axis_population_row").style("display", "");
+    									d3.select("#tooltip_y_axis_long_name_row").style("display", "");
+    									d3.select("#tooltip_y_axis_desc_row").style("display", "");
+    									d3.select("#tooltip_y_axis_author_row").style("display", "");
+    									d3.select("#tooltip_y_axis_number_row").style("display", "");
+    									d3.select("#tooltip_y_axis")
+    	             						  .style("left", xPosition + "px")
+    	             						  .style("top",  yPosition + "px")
+    	             						  .style("width", null)
+    	             						  .style("max-width", null)
+    	             						  .select("#population_y_axis")
+    	             						  .text(d.short_name);      
+    	             						  	             						  
+    	             						d3.select("#tooltip_y_axis")
+    	             						  .style("left", xPosition + "px")
+    	             						  .style("top", yPosition + "px")
+    	             						  .select("#long_name_y_axis")
+    	             						  .text(d.long_name);
+    	             						
+    	             						d3.select("#tooltip_y_axis")
+    	             						  .style("left", xPosition + "px")
+    	             						  .style("top", yPosition + "px")
+    	             						  .select("#desc_y_axis")
+    	             						  .text(d.description);
+    	             						  
+    	             						d3.select("#tooltip_y_axis")
+    	             						  .style("left", xPosition + "px")
+    	             						  .style("top", yPosition + "px")
+    	             						  .select("#author_y_axis")
+    	             						  .text(d.author);
+    	             						  
+    	             						d3.select("#tooltip_y_axis")
+    	             						  .style("left", xPosition + "px")
+    	             						  .style("top", yPosition + "px")
+    	             						  .select("#number_of_sample_y_axis")
+    	             						  .text(d.number_of_sample);
+    								}
+  	             						
+  	             						d3.select("#tooltip_y_axis").classed("hidden", false);
+  	             						
+  	             						
+    							d3.select(this).style("fill", "red");
+    							d3.select(this).style("font-size", (rowlabel_font_size+1) + "px");
+    							d3.select(this).style("font-weight", "bold");
+    							d3.select(this).style("cursor", "hand");
+    						})
+    						.on("mouseout", function(d) {
+    						
+    							d3.select("#tooltip_y_axis").classed("hidden", true);  
+    							
+    							d3.select(this).style("font-size", rowlabel_font_size + "px");
+    							d3.select(this).style("font-weight", "normal");
+    						})
+    						.on("click", function(d) {
+    							if(d.sorting_info=='1'){
+    								if(rnaseq_datagroup == 'ImmGen ULI RNASeq'){
+    									window.open("resources/Sorting_PDFs_ATAC/" + d.population + '.pdf', '_blank');
+    									window.focus();
+    								}
+    								else if(rnaseq_datagroup == 'ImmGen MNP OpenSource'){
+    									window.open("resources/Sorting_PDFs_OSMNP/" + d.short_name + '.pdf', '_blank');
+    									window.focus();
+    								}
+    							}
+    							else{
+    								$("#AlertModal_sorting_info").modal('show');
+    							}
+    						});
+					
+				}
+			});
+			
+			    			
+			////////////////////////////////////////////////////////////////
+			$("#chatgpt_btn").click(function() {
+					chatgpt_user_id = Date.now();
+					$.ajax({                                         
+						type: 'POST',      
+						url: 'save_chatgpt_insert_rating_logs.php',               
+						data: { 'chatgpt_user_id': chatgpt_user_id },
+						cache: false
+		        	});
+		        	
+    				var rnaseq_gene_chatgpt = $("#rnaseq_Gene").val();
+    				chatgpt_all_outputs = [];
+    				
+    				// Clear and reset modal content
+    				$('#chatgpt_panel').empty();
+    				$("#follow_up_list").val('initial').selectpicker("refresh");
+    				document.getElementById("suggestion_form").value = '';
+    				$('input[name="SuveryOptions"]').prop('checked', false);
+    				
+    				// Hide modal-body and modal-footer initially
+    				$('#ChatGPTModal .modal-body').hide();
+    				$('#ChatGPTModal .modal-footer').hide();
+    				
+               // Show modal immediately without API call
+               $("#ChatGPTModal").modal('show');
+               // Hide caution until a model is selected; show close; reset width and center title
+               document.getElementById('chatgpt_caution').style.display = 'none';
+               document.getElementById('chatgpt_header_close_btn').style.display = 'block';
+               document.getElementById('chatgpt_modal_dialog').style.maxWidth = '50%';
+               var chatgptTitle = document.getElementById('ChatGPTModal_Label');
+               if (chatgptTitle) { chatgptTitle.classList.add('text-center'); chatgptTitle.classList.remove('text-left'); }
+    				
+    				// Reset AI option selection and first selection flag
+    				$('input[name="ai_option"]').prop('checked', false);
+    				firstAISelectionMade = false;
+			});
+			
+			// Variable to track if first AI selection has been made
+			var firstAISelectionMade = false;
+			
+			// Handle AI option selection
+			$('input[name="ai_option"]').change(function() {
+				var selectedOption = $(this).val();
+				var rnaseq_gene_chatgpt = $("#rnaseq_Gene").val();
+				
+				// Show modal-body and modal-footer when an option is selected
+				$('#ChatGPTModal .modal-body').show();
+				$('#ChatGPTModal .modal-footer').show();
+				// Show caution text and header close button after model selection
+				document.getElementById('chatgpt_caution').style.display = 'block';
+				document.getElementById('chatgpt_header_close_btn').style.display = 'none';
+				// Expand dialog width after selection
+				document.getElementById('chatgpt_modal_dialog').style.maxWidth = '80%';
+				// Left-align title after selection
+				var chatgptTitle = document.getElementById('ChatGPTModal_Label');
+				if (chatgptTitle) { chatgptTitle.classList.remove('text-center'); chatgptTitle.classList.add('text-left'); }
+				
+				// Only automatically trigger API calls on the first selection
+				if (!firstAISelectionMade) {
+					// Clear previous content
+					$('#chatgpt_panel').empty();
+					chatgpt_all_outputs = [];
+					
+					// Add the prompt to the chat panel
+					var chatgpt_input_tmp = document.createElement("p");
+					chatgpt_input_tmp.classList.add("chat_input");
+					document.getElementById("chatgpt_panel").prepend(chatgpt_input_tmp);
+					chatgpt_input_tmp.innerHTML = '<b>Prompt: </b>What are the functions and mechanisms of mouse gene ' + rnaseq_gene_chatgpt + ' in the immune system?';
+					scroll_chat_to_newest();
+					chatgpt_all_outputs.push("What are the functions and mechanisms of mouse gene " + rnaseq_gene_chatgpt + " in the immune system?");
+					
+					if (selectedOption === 'chatgpt') {
+						// Call ChatGPT only
+						callChatGPT(rnaseq_gene_chatgpt);
+					} else if (selectedOption === 'claude') {
+						// Call Claude only
+						callClaude(rnaseq_gene_chatgpt);
+					} else if (selectedOption === 'both') {
+						// Call both ChatGPT and Claude
+						callBothAI(rnaseq_gene_chatgpt);
+					}
+					
+					// Mark that first selection has been made
+					firstAISelectionMade = true;
+				}
+				// If not the first selection, just update the UI without triggering API calls
+				// User can manually send new requests using the input form if needed
+			});
+			
+			// Text shown (and kept in the history) when an AI request fails, so the spinner stops and the question
+			// still gets exactly one answer entry. Only the status is shown, never the raw error page.
+			function ai_failure_text(jqXHR, textStatus) {
+				var detail = (jqXHR && jqXHR.status) ? 'HTTP ' + jqXHR.status : (textStatus || 'network error');
+				return 'Sorry, no answer this time (' + detail + '). Please try again.';
+			}
+			
+			// Scroll the chat panel to the bottom, where the newest prompt/answer is drawn (the panel uses
+			// flex-direction: column-reverse). Computed from on-screen positions, then clamped by the browser,
+			// so it works whichever way the browser numbers scrollTop for column-reverse.
+			function scroll_chat_to_newest() {
+				var panel = document.getElementById('chatgpt_panel');
+				if (!panel) { return; }
+				var newest = null;
+				for (var i = 0; i < panel.children.length; i++) {
+					if (panel.children[i].getClientRects().length > 0) { newest = panel.children[i]; break; }
+				}
+				if (!newest) { return; }
+				panel.scrollTop += newest.getBoundingClientRect().bottom - panel.getBoundingClientRect().bottom + panel.clientHeight;
+			}
+			
+			// Function to call ChatGPT
+			function callChatGPT(gene) {
+				var chatgpt_output_tmp = document.createElement("p");
+				chatgpt_output_tmp.classList.add("chat_output");
+				var chatgpt_output_tmp_id = Date.now();
+				chatgpt_output_tmp.setAttribute("id", "p" + chatgpt_output_tmp_id);
+				chatgpt_output_tmp.setAttribute("style", "display:none;");
+				document.getElementById("chatgpt_panel").prepend(chatgpt_output_tmp);
+				chatgpt_output_tmp.innerHTML = '<b>ChatGPT: </b><span id="' + chatgpt_output_tmp_id + '"></span>';
+				
+				var spinner_followup = '<div class="spinner-border text-secondary" role="status"><span class="sr-only">Loading...</span></div>';
+				$("#chatgpt_spinner_followup").html(spinner_followup);
+				document.getElementById('chatgpt_spinner_followup').style.display = 'inline';
+				
+				setTimeout(function(){
+					$.ajax({
+						type: 'POST',
+						url: 'get_chatgpt.php',
+						data: {'chatgpt_all_outputs': chatgpt_all_outputs},
+						async: false
+					}).done(function(response) {
+						document.getElementById('chatgpt_spinner_followup').style.display = 'none';
+						document.getElementById("p" + chatgpt_output_tmp_id).style.display = 'block';
+						chatgpt_output = response;
+						chatgpt_all_outputs.push(response);
+						document.getElementById(chatgpt_output_tmp_id).innerHTML = response.replaceAll(/[\r\n]+/g, "<br>");
+						scroll_chat_to_newest();
+						$.ajax({
+							type: 'POST',
+							url: 'save_chatgpt_chat_logs.php',
+							data: { 'gene': hashtable_synonyms[gene], 'prompt': "What are the functions and mechanisms of mouse gene XX in the immune system? Please summarize within 200 words in one paragraph.", 'chatgpt_output': 'ChatGPT: ' + chatgpt_output, 'chatgpt_user_id': chatgpt_user_id},
+							cache: false
+						});
+					}).fail(function(jqXHR, textStatus) {
+						var failure = ai_failure_text(jqXHR, textStatus);
+						document.getElementById('chatgpt_spinner_followup').style.display = 'none';
+						document.getElementById("p" + chatgpt_output_tmp_id).style.display = 'block';
+						chatgpt_all_outputs.push(failure);
+						document.getElementById(chatgpt_output_tmp_id).textContent = failure;
+						scroll_chat_to_newest();
+					});
+				}, 50);
+			}
+			
+			// Function to call Claude
+			function callClaude(gene) {
+				var claude_output_tmp = document.createElement("p");
+				claude_output_tmp.classList.add("chat_output");
+				var claude_output_tmp_id = Date.now();
+				claude_output_tmp.setAttribute("id", "p" + claude_output_tmp_id);
+				claude_output_tmp.setAttribute("style", "display:none;");
+				document.getElementById("chatgpt_panel").prepend(claude_output_tmp);
+				claude_output_tmp.innerHTML = '<b>Claude: </b><span id="' + claude_output_tmp_id + '"></span>';
+				
+				var spinner_followup = '<div class="spinner-border text-secondary" role="status"><span class="sr-only">Loading...</span></div>';
+				$("#chatgpt_spinner_followup").html(spinner_followup);
+				document.getElementById('chatgpt_spinner_followup').style.display = 'inline';
+				
+				setTimeout(function(){
+					$.ajax({
+						type: 'POST',
+						url: 'get_claude.php',
+						data: {'chatgpt_all_outputs': chatgpt_all_outputs},
+						async: false
+					}).done(function(response) {
+						document.getElementById('chatgpt_spinner_followup').style.display = 'none';
+						document.getElementById("p" + claude_output_tmp_id).style.display = 'block';
+						claude_output = response;
+						chatgpt_all_outputs.push(response);
+						document.getElementById(claude_output_tmp_id).innerHTML = response.replaceAll(/[\r\n]+/g, "<br>");
+						scroll_chat_to_newest();
+						$.ajax({
+							type: 'POST',
+							url: 'save_chatgpt_chat_logs.php',
+							data: { 'gene': hashtable_synonyms[gene], 'prompt': "What are the functions and mechanisms of mouse gene XX in the immune system? Please summarize within 200 words in one paragraph.", 'chatgpt_output': 'Claude: ' + response, 'chatgpt_user_id': chatgpt_user_id},
+							cache: false
+						});
+					}).fail(function(jqXHR, textStatus) {
+						var failure = ai_failure_text(jqXHR, textStatus);
+						document.getElementById('chatgpt_spinner_followup').style.display = 'none';
+						document.getElementById("p" + claude_output_tmp_id).style.display = 'block';
+						chatgpt_all_outputs.push(failure);
+						document.getElementById(claude_output_tmp_id).textContent = failure;
+						scroll_chat_to_newest();
+					});
+				}, 50);
+			}
+			
+			// Function to call both ChatGPT and Claude
+			function callBothAI(gene) {
+				// Generate unique IDs for the output elements
+				var chatgpt_output_tmp_id = Date.now();
+				var claude_output_tmp_id = Date.now() + 1;
+				
+				// Show spinner immediately without creating output boxes
+				var spinner_followup = '<div class="spinner-border text-secondary" role="status"><span class="sr-only">Loading...</span></div>';
+				$("#chatgpt_spinner_followup").html(spinner_followup);
+				document.getElementById('chatgpt_spinner_followup').style.display = 'inline';
+				
+				var completedRequests = 0;
+				var chatgpt_response = '';
+				var claude_response = '';
+				
+				// Call ChatGPT
+				$.ajax({
+					type: 'POST',
+					url: 'get_chatgpt.php',
+					data: {'chatgpt_all_outputs': chatgpt_all_outputs},
+					async: true,
+					timeout: 120000   // a request that never answers counts as failed, so the spinner stops
+				}).done(function(response) {
+					chatgpt_response = response;
+				}).fail(function(jqXHR, textStatus) {
+					chatgpt_response = ai_failure_text(jqXHR, textStatus);
+				}).always(function() {
+					completedRequests++;
+					if (completedRequests === 2) {
+						displayBothResults();
+					}
+				});
+				
+				// Call Claude
+				$.ajax({
+					type: 'POST',
+					url: 'get_claude.php',
+					data: {'chatgpt_all_outputs': chatgpt_all_outputs},
+					async: true,
+					timeout: 120000   // a request that never answers counts as failed, so the spinner stops
+				}).done(function(response) {
+					claude_response = response;
+				}).fail(function(jqXHR, textStatus) {
+					claude_response = ai_failure_text(jqXHR, textStatus);
+				}).always(function() {
+					completedRequests++;
+					if (completedRequests === 2) {
+						displayBothResults();
+					}
+				});
+				
+				function displayBothResults() {
+					// Hide spinner
+					document.getElementById('chatgpt_spinner_followup').style.display = 'none';
+					
+					// Create and display ChatGPT result box
+					var chatgpt_output_tmp = document.createElement("p");
+					chatgpt_output_tmp.classList.add("chat_output");
+					chatgpt_output_tmp.setAttribute("id", "p" + chatgpt_output_tmp_id);
+					document.getElementById("chatgpt_panel").prepend(chatgpt_output_tmp);
+					chatgpt_output_tmp.innerHTML = '<b>ChatGPT: </b><span id="' + chatgpt_output_tmp_id + '"></span>';
+					
+					// Create and display Claude result box
+					var claude_output_tmp = document.createElement("p");
+					claude_output_tmp.classList.add("chat_output");
+					claude_output_tmp.setAttribute("id", "p" + claude_output_tmp_id);
+					document.getElementById("chatgpt_panel").prepend(claude_output_tmp);
+					claude_output_tmp.innerHTML = '<b>Claude: </b><span id="' + claude_output_tmp_id + '"></span>';
+					
+					// Populate results
+					document.getElementById(chatgpt_output_tmp_id).innerHTML = chatgpt_response.replaceAll(/[\r\n]+/g, "<br>");
+					document.getElementById(claude_output_tmp_id).innerHTML = claude_response.replaceAll(/[\r\n]+/g, "<br>");
+					
+					// Keep one history entry per answer turn: get_chatgpt.php and get_claude.php read this list as
+					// alternating question/answer, so pushing two answers here made the next question an 'assistant'
+					// message (Claude then fails with HTTP 400 "does not support assistant message prefill").
+					chatgpt_all_outputs.push('ChatGPT: ' + chatgpt_response + '\n\nClaude: ' + claude_response);
+					scroll_chat_to_newest();
+					
+					// Save both responses
+					$.ajax({
+						type: 'POST',
+						url: 'save_chatgpt_chat_logs.php',
+						data: { 'gene': hashtable_synonyms[gene], 'prompt': "What are the functions and mechanisms of mouse gene XX in the immune system? Please summarize within 200 words in one paragraph.", 'chatgpt_output': 'ChatGPT: ' + chatgpt_response + '\n\nClaude: ' + claude_response, 'chatgpt_user_id': chatgpt_user_id},
+						cache: false
+					});
+				}
+			}
+			
+			// Function to call ChatGPT for follow-up questions
+			function callFollowupChatGPT(followup_question, gene) {
+				var chatgpt_output_tmp = document.createElement("p");
+				chatgpt_output_tmp.classList.add("chat_output");
+				var chatgpt_output_tmp_id = Date.now();				
+				chatgpt_output_tmp.setAttribute("id", "p" + chatgpt_output_tmp_id);
+				chatgpt_output_tmp.setAttribute("style", "display:none;");
+				document.getElementById("chatgpt_panel").prepend(chatgpt_output_tmp);
+				chatgpt_output_tmp.innerHTML = '<b>ChatGPT: </b><span id="' + chatgpt_output_tmp_id + '"></span>';
+    			
+    			var spinner_followup = '<div class="spinner-border text-secondary" role="status"><span class="sr-only">Loading...</span></div>';
+    			$("#chatgpt_spinner_followup").html(spinner_followup);
+    			document.getElementById('chatgpt_spinner_followup').style.display = 'inline';
+    			
+                setTimeout(function(){
+                    $.ajax({                                         
+                    type: 'POST',      
+                    url: 'get_chatgpt.php',
+                    data: {'chatgpt_all_outputs': chatgpt_all_outputs},
+                    async: false
+                }).done(function(response) {
+					document.getElementById('chatgpt_spinner_followup').style.display = 'none';
+					document.getElementById("p" + chatgpt_output_tmp_id).style.display = 'block';
+			 		chatgpt_output_followup = response;
+			 		chatgpt_all_outputs.push(response);
+			 		document.getElementById(chatgpt_output_tmp_id).innerHTML = response.replaceAll(/[\r\n]+/g, "<br>");
+			 		scroll_chat_to_newest();
+			 		// Clear all radio button selections for Example Prompts
+			  	  	$('input[name="follow_up_list_options"]').prop('checked', false);
+			  	  	// Remove active class from bootstrap button labels
+			  	  	$('#follow_up_list label').removeClass('active');
+	        	$.ajax({                                         
+					type: 'POST',      
+					url: 'save_chatgpt_chat_logs.php',               
+					data: { 'gene': hashtable_synonyms[gene], 'prompt': followup_question + " Please summarize within 200 words in one paragraph.", 'chatgpt_output': 'ChatGPT: ' + chatgpt_output_followup, 'chatgpt_user_id': chatgpt_user_id },
+					cache: false
+	        	});
+			 }).fail(function(jqXHR, textStatus) {
+			 	var failure = ai_failure_text(jqXHR, textStatus);
+			 	document.getElementById('chatgpt_spinner_followup').style.display = 'none';
+			 	document.getElementById("p" + chatgpt_output_tmp_id).style.display = 'block';
+			 	chatgpt_all_outputs.push(failure);
+			 	document.getElementById(chatgpt_output_tmp_id).textContent = failure;
+			 	$('input[name="follow_up_list_options"]').prop('checked', false);
+			 	$('#follow_up_list label').removeClass('active');
+			 	scroll_chat_to_newest();
+			 });			        
+			},200);
+			}
+			
+			// Function to call Claude for follow-up questions
+			function callFollowupClaude(followup_question, gene) {
+				var chatgpt_output_tmp = document.createElement("p");
+				chatgpt_output_tmp.classList.add("chat_output");
+				var chatgpt_output_tmp_id = Date.now();				
+				chatgpt_output_tmp.setAttribute("id", "p" + chatgpt_output_tmp_id);
+				chatgpt_output_tmp.setAttribute("style", "display:none;");
+				document.getElementById("chatgpt_panel").prepend(chatgpt_output_tmp);
+				chatgpt_output_tmp.innerHTML = '<b>Claude: </b><span id="' + chatgpt_output_tmp_id + '"></span>';
+    			
+    			var spinner_followup = '<div class="spinner-border text-secondary" role="status"><span class="sr-only">Loading...</span></div>';
+    			$("#chatgpt_spinner_followup").html(spinner_followup);
+    			document.getElementById('chatgpt_spinner_followup').style.display = 'inline';
+    			
+                setTimeout(function(){
+                    $.ajax({                                         
+                    type: 'POST',      
+                    url: 'get_claude.php',
+                    data: {'chatgpt_all_outputs': chatgpt_all_outputs},
+                    async: false
+                }).done(function(response) {
+					document.getElementById('chatgpt_spinner_followup').style.display = 'none';
+					document.getElementById("p" + chatgpt_output_tmp_id).style.display = 'block';
+			 		chatgpt_output_followup = response;
+			 		chatgpt_all_outputs.push(response);
+			 		document.getElementById(chatgpt_output_tmp_id).innerHTML = response.replaceAll(/[\r\n]+/g, "<br>");
+			 		scroll_chat_to_newest();
+			 		// Clear all radio button selections for Example Prompts
+			  	  	$('input[name="follow_up_list_options"]').prop('checked', false);
+			  	  	// Remove active class from bootstrap button labels
+			  	  	$('#follow_up_list label').removeClass('active');
+	        	$.ajax({                                         
+					type: 'POST',      
+					url: 'save_chatgpt_chat_logs.php',               
+					data: { 'gene': hashtable_synonyms[gene], 'prompt': followup_question + " Please summarize within 200 words in one paragraph.", 'chatgpt_output': 'Claude: ' + chatgpt_output_followup, 'chatgpt_user_id': chatgpt_user_id },
+					cache: false
+	        	});
+			 }).fail(function(jqXHR, textStatus) {
+			 	var failure = ai_failure_text(jqXHR, textStatus);
+			 	document.getElementById('chatgpt_spinner_followup').style.display = 'none';
+			 	document.getElementById("p" + chatgpt_output_tmp_id).style.display = 'block';
+			 	chatgpt_all_outputs.push(failure);
+			 	document.getElementById(chatgpt_output_tmp_id).textContent = failure;
+			 	$('input[name="follow_up_list_options"]').prop('checked', false);
+			 	$('#follow_up_list label').removeClass('active');
+			 	scroll_chat_to_newest();
+			 });			        
+			},200);
+			}
+			
+			// Function to call both ChatGPT and Claude for follow-up questions
+			function callFollowupBothAI(followup_question, gene) {
+				// Generate unique IDs for the output elements
+				var chatgpt_output_tmp_id = Date.now();
+				var claude_output_tmp_id = Date.now() + 1;
+				
+				// Show spinner immediately without creating output boxes
+				var spinner_followup = '<div class="spinner-border text-secondary" role="status"><span class="sr-only">Loading...</span></div>';
+				$("#chatgpt_spinner_followup").html(spinner_followup);
+				document.getElementById('chatgpt_spinner_followup').style.display = 'inline';
+				
+				var completedRequests = 0;
+				var chatgpt_response = '';
+				var claude_response = '';
+				
+				// Call ChatGPT
+				$.ajax({
+					type: 'POST',
+					url: 'get_chatgpt.php',
+					data: {'chatgpt_all_outputs': chatgpt_all_outputs},
+					async: true,
+					timeout: 120000   // a request that never answers counts as failed, so the spinner stops
+				}).done(function(response) {
+					chatgpt_response = response;
+				}).fail(function(jqXHR, textStatus) {
+					chatgpt_response = ai_failure_text(jqXHR, textStatus);
+				}).always(function() {
+					completedRequests++;
+					if (completedRequests === 2) {
+						displayFollowupBothResults();
+					}
+				});
+				
+				// Call Claude
+				$.ajax({
+					type: 'POST',
+					url: 'get_claude.php',
+					data: {'chatgpt_all_outputs': chatgpt_all_outputs},
+					async: true,
+					timeout: 120000   // a request that never answers counts as failed, so the spinner stops
+				}).done(function(response) {
+					claude_response = response;
+				}).fail(function(jqXHR, textStatus) {
+					claude_response = ai_failure_text(jqXHR, textStatus);
+				}).always(function() {
+					completedRequests++;
+					if (completedRequests === 2) {
+						displayFollowupBothResults();
+					}
+				});
+				
+				function displayFollowupBothResults() {
+					// Hide spinner
+					document.getElementById('chatgpt_spinner_followup').style.display = 'none';
+					
+					// Create and display ChatGPT result box
+					var chatgpt_output_tmp = document.createElement("p");
+					chatgpt_output_tmp.classList.add("chat_output");
+					chatgpt_output_tmp.setAttribute("id", "p" + chatgpt_output_tmp_id);
+					document.getElementById("chatgpt_panel").prepend(chatgpt_output_tmp);
+					chatgpt_output_tmp.innerHTML = '<b>ChatGPT: </b><span id="' + chatgpt_output_tmp_id + '"></span>';
+					
+					// Create and display Claude result box
+					var claude_output_tmp = document.createElement("p");
+					claude_output_tmp.classList.add("chat_output");
+					claude_output_tmp.setAttribute("id", "p" + claude_output_tmp_id);
+					document.getElementById("chatgpt_panel").prepend(claude_output_tmp);
+					claude_output_tmp.innerHTML = '<b>Claude: </b><span id="' + claude_output_tmp_id + '"></span>';
+					
+					// Populate results
+					document.getElementById(chatgpt_output_tmp_id).innerHTML = chatgpt_response.replaceAll(/[\r\n]+/g, "<br>");
+					document.getElementById(claude_output_tmp_id).innerHTML = claude_response.replaceAll(/[\r\n]+/g, "<br>");
+					
+					// Keep one history entry per answer turn: get_chatgpt.php and get_claude.php read this list as
+					// alternating question/answer, so pushing two answers here made the next question an 'assistant'
+					// message (Claude then fails with HTTP 400 "does not support assistant message prefill").
+					chatgpt_all_outputs.push('ChatGPT: ' + chatgpt_response + '\n\nClaude: ' + claude_response);
+					scroll_chat_to_newest();
+					
+					// Clear all radio button selections for Example Prompts
+			  	  	$('input[name="follow_up_list_options"]').prop('checked', false);
+			  	  	// Remove active class from bootstrap button labels
+			  	  	$('#follow_up_list label').removeClass('active');
+					
+					// Save both responses
+					$.ajax({
+						type: 'POST',
+						url: 'save_chatgpt_chat_logs.php',
+						data: { 'gene': hashtable_synonyms[gene], 'prompt': followup_question + " Please summarize within 200 words in one paragraph.", 'chatgpt_output': 'ChatGPT: ' + chatgpt_response + '\n\nClaude: ' + claude_response, 'chatgpt_user_id': chatgpt_user_id},
+						cache: false
+					});
+				}
+			}
+			
+			$("#ChatGPTModal_survey_submit_btn").click(function() {
+					var suggestion = document.getElementById("suggestion_form").value;
+					if(document.querySelectorAll('input[name="SuveryOptions"]:checked').length || (suggestion != "")){
+						var rnaseq_gene_chatgpt = $("#rnaseq_Gene").val();					
+						var user_rating = "";
+						if(document.querySelectorAll('input[name="SuveryOptions"]:checked').length){
+							user_rating = document.querySelector('input[name="SuveryOptions"]:checked').value;
+						}
+						
+						$.ajax({                                         
+							type: 'POST',      
+							url: 'save_chatgpt_update_rating_logs.php',               
+							data: { 'chatgpt_user_id': chatgpt_user_id, 'user_rating': user_rating, 'suggestion': suggestion},
+							cache: false
+		        		});
+		        		$("#ChatGPTModal").modal('hide');
+					}
+					else{
+		        		$("#AlertModal_survey").modal('show');
+		        	}
+			});
+			
+			$("#ChatGPTModal_survey_close_btn").click(function() {
+					var rnaseq_gene_chatgpt = $("#rnaseq_Gene").val();					
+					var user_rating = "";
+					var suggestion = document.getElementById("suggestion_form").value;
+					
+					$.ajax({                                         
+						type: 'POST',      
+						url: 'save_chatgpt_update_rating_logs.php',               
+						data: { 'chatgpt_user_id': chatgpt_user_id, 'user_rating': user_rating, 'suggestion': suggestion},
+						cache: false
+		        	});
+		        	$("#ChatGPTModal").modal('hide');
+			});
+			
+			$("#chatgpt_save_history").click(function() {
+    				downloadCSV(chatgpt_all_outputs);
+			});
+			
+			
+			$("#gene_page_btn").click(function() { 
+    				var rnaseq_gene = $("#rnaseq_Gene").val();
+					
+				window.open( 'https://rstats.immgen.org/ImmGen_Gene_Page/index.html?gene=' + hashtable_synonyms[rnaseq_gene] );
+			});
+
+			$("#microarray_skyline_btn").click(function() { 
+    				var rnaseq_gene = $("#rnaseq_Gene").val();
+					
+				window.open( 'https://rstats.immgen.org/Skyline_microarray/skyline.html?gene=' + hashtable_synonyms[rnaseq_gene] );
+			});
+						
+			$("#gene_constellation_btn").click(function() { 
+    				var rnaseq_gene = $("#rnaseq_Gene").val();
+					
+				window.open( 'https://rstats.immgen.org/GeneConstellation/index.html?gene=' + hashtable_synonyms[rnaseq_gene] );
+			});
+			
+			$("#chromatin_btn").click(function() { 
+				var rnaseq_gene = $("#rnaseq_Gene").val();
+    				window.open( 'https://rstats.immgen.org/Chromatin/chromatin.html?gene=' + hashtable_synonyms[rnaseq_gene] );
+			});
+			
+			$("#enhancer_network_btn").click(function() { 
+				var rnaseq_gene = $("#rnaseq_Gene").val();
+    				window.open( 'https://rstats.immgen.org/EnhancerControl/index.html?gene=' + hashtable_synonyms[rnaseq_gene] );
+			});
+			
+			$("#ICA_btn").click(function() { 
+    				window.open( 'https://rstats.immgen.org/Skyline_human/ICA_Skyline.php?gene=' + human_orthology_gene + '&celltype=all&organ=Blood&datatype=rnaseq&scale=Local' );
+			});
+			////////////////////////////////////////////////////////////////
+			var canvas = document.getElementById('canvas_id');
+			
+			$("#immgen_uli_rnaseq_save_expr").click(function() { 
+				var rnaseq_datagroup = $("#rnaseq_datagroup_list").val();
+    			var rnaseq_gene = $("#rnaseq_Gene").val();
+				var rnaseq_population_option = $("#rnaseq_population_list label.active input").val();
+				var rnaseq_population;
+				if(rnaseq_population_option=='Select the populations of interest'){
+					rnaseq_population = $("#rnaseq_group").text();
+				}
+				else if(rnaseq_population_option=='Select the populations of interest by organs'){
+					rnaseq_population = $("#rnaseq_group_by_organ").text();
+				}
+					
+				window.open( 'https://rstats.immgen.org/Skyline/download_expr_table.php?type=rnaseq&id=' + hashtable_synonyms[rnaseq_gene] + '&datagroup=' + rnaseq_datagroup + '&population=' + rnaseq_population + '&key_population=' + rnaseq_population_option );
+			});
+			$("#immgen_uli_rnaseq_save_meta").click(function() { 
+				var rnaseq_datagroup = $("#rnaseq_datagroup_list").val();
+    			var rnaseq_gene = $("#rnaseq_Gene").val();
+				var rnaseq_population_option = $("#rnaseq_population_list label.active input").val();
+				var rnaseq_population;
+				if(rnaseq_population_option=='Select the populations of interest'){
+					rnaseq_population = $("#rnaseq_group").text();
+				}
+				else if(rnaseq_population_option=='Select the populations of interest by organs'){
+					rnaseq_population = $("#rnaseq_group_by_organ").text();
+				}
+				
+				window.open( 'https://rstats.immgen.org/Skyline/download_meta_table.php?type=rnaseq&id=' + rnaseq_gene + '&datagroup=' + rnaseq_datagroup + '&population=' + rnaseq_population + '&key_population=' + rnaseq_population_option );
+			});
+			$("#immgen_uli_rnaseq_save_as_svg").click(function() { 
+				if (/*@cc_on!@*/false || !!document.documentMode) {
+					$("#AlertModal_IE_save_image").modal('show');
+				}
+				else {
+					var svgString = new XMLSerializer().serializeToString(document.getElementById("chart").getElementsByTagName("svg")[0]),
+					blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}),
+					url = window.URL.createObjectURL(blob);
+					
+					var a = document.createElement('a');
+					a.href = url;
+					a.download = 'Gene_Skyline.svg';
+					document.body.appendChild(a);
+					a.click();
+					//submit_download_form("svg");
+				}
+			});
+			$("#immgen_uli_rnaseq_save_as_png").click(function() {
+				if (/*@cc_on!@*/false || !!document.documentMode) {
+					$("#AlertModal_IE_save_image").modal('show');
+				}
+				else {
+					var svgString = new XMLSerializer().serializeToString(document.getElementById("chart").getElementsByTagName("svg")[0]),
+					    blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}),
+					    url = window.URL.createObjectURL(blob);
+					      
+					var img = d3.select('body').append('img').classed('exportImg', true).node();
+					img.onload = function () {
+						var canvas = document.createElement('canvas'),
+						ctx = canvas.getContext('2d');
+						canvas.width = width + margin.left + margin.right + 50;
+						canvas.height = height + margin.top + margin.bottom + 50;
+						ctx.clearRect(0, 0, canvas.width, canvas.height);
+						ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+						d3.select('img.exportImg').remove();
+						
+						// create link
+						var a = document.createElement('a');
+						a.href = canvas.toDataURL();
+						a.download = 'Gene_Skyline.png';
+						document.body.appendChild(a);
+						a.click();
+					};
+					img.src = url;
+				}
+			});
+			$("#immgen_uli_rnaseq_save_as_pdf").click(function() {
+				if (/*@cc_on!@*/false || !!document.documentMode) {
+					$("#AlertModal_IE_save_pdf").modal('show');
+				}
+				else {
+					var svgString = new XMLSerializer().serializeToString(document.getElementById("chart").getElementsByTagName("svg")[0]),
+					    blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}),
+					    url = window.URL.createObjectURL(blob);
+					      
+					var img = d3.select('body').append('img').classed('exportImg', true).node();
+					img.onload = function () {
+						var canvas = document.createElement('canvas'),
+						ctx = canvas.getContext('2d');
+						canvas.width = width + margin.left + margin.right + 50;
+						canvas.height = height + margin.top + margin.bottom + 50;
+						ctx.clearRect(0, 0, canvas.width, canvas.height);
+						ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+						d3.select('img.exportImg').remove();
+						
+						// create link
+						//var a = document.createElement('a');
+						//a.href = canvas.toDataURL();
+						var imgData = canvas.toDataURL('image/png');
+						var doc = new window.jspdf.jsPDF('l', 'mm', 'letter');
+						doc.addImage(imgData, 'PNG', 0, 10, doc.internal.pageSize.width-10, doc.internal.pageSize.height-10, null, 'NONE');
+						doc.save('Gene_Skyline.pdf');
+						//a.download = 'Gene_Skyline';
+						//a.click();
+					};
+					img.src = url;
+				}
+			});
+			$("#immgen_uli_rnaseq_print").click(function() { print_div(); });
+			$("#immgen_uli_rnaseq_email").click(function() {
+				$("#EmailModal").modal('show');
+			});
+			
+			
+					
+			$("#immgen_OSMNP_uli_rnaseq_save_expr").click(function() { 
+				var rnaseq_datagroup = $("#rnaseq_datagroup_list").val();
+    			var rnaseq_gene = $("#rnaseq_Gene").val();
+				var rnaseq_population_option = $("#rnaseq_population_list label.active input").val();
+				var rnaseq_population;
+				if(rnaseq_population_option=='Select the populations of interest'){
+					rnaseq_population = $("#rnaseq_OSMNP_group").text();
+				}
+				else if(rnaseq_population_option=='Select the populations of interest by organs'){
+					rnaseq_population = $("#rnaseq_OSMNP_group_by_organ").text();
+				}
+					
+				window.open( 'https://rstats.immgen.org/Skyline/download_expr_table.php?type=rnaseq&id=' + hashtable_synonyms[rnaseq_gene] + '&datagroup=' + rnaseq_datagroup + '&population=' + rnaseq_population + '&key_population=' + rnaseq_population_option );
+			});
+			$("#immgen_OSMNP_uli_rnaseq_save_meta").click(function() { 
+				var rnaseq_datagroup = $("#rnaseq_datagroup_list").val();
+    			var rnaseq_gene = $("#rnaseq_Gene").val();
+				var rnaseq_population_option = $("#rnaseq_population_list label.active input").val();
+				var rnaseq_population;
+				if(rnaseq_population_option=='Select the populations of interest'){
+					rnaseq_population = $("#rnaseq_OSMNP_group").text();
+				}
+				else if(rnaseq_population_option=='Select the populations of interest by organs'){
+					rnaseq_population = $("#rnaseq_OSMNP_group_by_organ").text();
+				}
+					
+				window.open( 'https://rstats.immgen.org/Skyline/download_meta_table.php?type=rnaseq&id=' + rnaseq_gene + '&datagroup=' + rnaseq_datagroup + '&population=' + rnaseq_population + '&key_population=' + rnaseq_population_option );
+			});
+			$("#immgen_OSMNP_uli_rnaseq_save_as_svg").click(function() { 
+				if (/*@cc_on!@*/false || !!document.documentMode) {
+					$("#AlertModal_IE_save_image").modal('show');
+				}
+				else {
+					var svgString = new XMLSerializer().serializeToString(document.getElementById("chart").getElementsByTagName("svg")[0]),
+					blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}),
+					url = window.URL.createObjectURL(blob);
+					
+					var a = document.createElement('a');
+					a.href = url;
+					a.download = 'Gene_Skyline.svg';
+					document.body.appendChild(a);
+					a.click();
+					//submit_download_form("svg");
+				}
+			});
+			$("#immgen_OSMNP_uli_rnaseq_save_as_png").click(function() {
+				if (/*@cc_on!@*/false || !!document.documentMode) {
+					$("#AlertModal_IE_save_image").modal('show');
+				}
+				else {
+					var svgString = new XMLSerializer().serializeToString(document.getElementById("chart").getElementsByTagName("svg")[0]),
+					    blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}),
+					    url = window.URL.createObjectURL(blob);
+					      
+					var img = d3.select('body').append('img').classed('exportImg', true).node();
+					img.onload = function () {
+					 	var canvas = document.createElement('canvas'),
+					    	ctx = canvas.getContext('2d');
+					    	canvas.width = width + margin.left + margin.right + 50;
+					    	canvas.height = height + margin.top + margin.bottom + 50;
+					    	ctx.clearRect(0, 0, canvas.width, canvas.height);
+					    	ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+					    	d3.select('img.exportImg').remove();
+					    	
+					    	// create link
+					    	var a = document.createElement('a');
+					    	a.href = canvas.toDataURL();
+					    	a.download = 'Gene_Skyline.png';
+					    	document.body.appendChild(a);
+					    	a.click();
+					};
+					img.src = url;
+				}
+			});
+			$("#immgen_OSMNP_uli_rnaseq_save_as_pdf").click(function() { 
+				if (/*@cc_on!@*/false || !!document.documentMode) {
+					$("#AlertModal_IE_save_pdf").modal('show');
+				}
+				else {
+					var svgString = new XMLSerializer().serializeToString(document.getElementById("chart").getElementsByTagName("svg")[0]),
+					    blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}),
+					    url = window.URL.createObjectURL(blob);
+					      
+					var img = d3.select('body').append('img').classed('exportImg', true).node();
+					img.onload = function () {
+						var canvas = document.createElement('canvas'),
+						ctx = canvas.getContext('2d');
+						canvas.width = width + margin.left + margin.right + 50;
+						canvas.height = height + margin.top + margin.bottom + 50;
+						ctx.clearRect(0, 0, canvas.width, canvas.height);
+						ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+						d3.select('img.exportImg').remove();
+						
+						// create link
+						//var a = document.createElement('a');
+						//a.href = canvas.toDataURL();
+						var imgData = canvas.toDataURL('image/png');
+						var doc = new window.jspdf.jsPDF('l', 'mm', 'letter');
+						doc.addImage(imgData, 'PNG', 0, 10, doc.internal.pageSize.width-10, doc.internal.pageSize.height-10, null, 'NONE');
+						doc.save('Gene_Skyline.pdf');
+						//a.download = 'Gene_Skyline';
+						//a.click();
+					};
+					img.src = url;
+				}
+			});
+		$("#immgen_OSMNP_uli_rnaseq_print").click(function() { print_div(); });
+		$("#immgen_OSMNP_uli_rnaseq_email").click(function() { 
+			$("#EmailModal").modal('show');
+		});
+		
+		
+		// CGC button handlers
+		$("#immgen_CGC_uli_rnaseq_save_expr").click(function() { 
+			var rnaseq_datagroup = $("#rnaseq_datagroup_list").val();
+			var rnaseq_gene = $("#rnaseq_Gene").val();
+			var rnaseq_population_option = $("#rnaseq_population_list label.active input").val();
+			var rnaseq_population;
+			if(rnaseq_population_option=='Select the populations of interest'){
+				rnaseq_population = $("#rnaseq_group_CGC").text();
+			}
+			else if(rnaseq_population_option=='Select the populations of interest by cytokine'){
+				rnaseq_population = $("#rnaseq_group_CGC_by_cytokine").text();
+			}
+				
+			window.open( 'https://rstats.immgen.org/Skyline/download_expr_table.php?type=rnaseq&id=' + hashtable_synonyms[rnaseq_gene] + '&datagroup=' + rnaseq_datagroup + '&population=' + rnaseq_population + '&key_population=' + rnaseq_population_option );
+		});
+		$("#immgen_CGC_uli_rnaseq_save_meta").click(function() { 
+			var rnaseq_datagroup = $("#rnaseq_datagroup_list").val();
+			var rnaseq_gene = $("#rnaseq_Gene").val();
+			var rnaseq_population_option = $("#rnaseq_population_list label.active input").val();
+			var rnaseq_population;
+			if(rnaseq_population_option=='Select the populations of interest'){
+				rnaseq_population = $("#rnaseq_group_CGC").text();
+			}
+			else if(rnaseq_population_option=='Select the populations of interest by cytokine'){
+				rnaseq_population = $("#rnaseq_group_CGC_by_cytokine").text();
+			}
+				
+			window.open( 'https://rstats.immgen.org/Skyline/download_meta_table.php?type=rnaseq&id=' + rnaseq_gene + '&datagroup=' + rnaseq_datagroup + '&population=' + rnaseq_population + '&key_population=' + rnaseq_population_option );
+		});
+		$("#immgen_CGC_uli_rnaseq_save_as_svg").click(function() { 
+			if (/*@cc_on!@*/false || !!document.documentMode) {
+				$("#AlertModal_IE_save_image").modal('show');
+			}
+			else {
+				var svgString = new XMLSerializer().serializeToString(document.getElementById("chart").getElementsByTagName("svg")[0]),
+				blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}),
+				url = window.URL.createObjectURL(blob);
+				
+				var a = document.createElement('a');
+				a.href = url;
+				a.download = 'Gene_Skyline.svg';
+				document.body.appendChild(a);
+				a.click();
+				//submit_download_form("svg");
+			}
+		});
+		$("#immgen_CGC_uli_rnaseq_save_as_png").click(function() {
+			if (/*@cc_on!@*/false || !!document.documentMode) {
+				$("#AlertModal_IE_save_image").modal('show');
+			}
+			else {
+				var svgString = new XMLSerializer().serializeToString(document.getElementById("chart").getElementsByTagName("svg")[0]),
+				    blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}),
+				    url = window.URL.createObjectURL(blob);
+				      
+				var img = d3.select('body').append('img').classed('exportImg', true).node();
+				img.onload = function () {
+				 	var canvas = document.createElement('canvas'),
+				    	ctx = canvas.getContext('2d');
+				    	canvas.width = width + margin.left + margin.right + 50;
+				    	canvas.height = height + margin.top + margin.bottom + 50;
+				    	ctx.clearRect(0, 0, canvas.width, canvas.height);
+				    	ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+				    	d3.select('img.exportImg').remove();
+				    	
+				    	// create link
+				    	var a = document.createElement('a');
+				    	a.href = canvas.toDataURL();
+				    	a.download = 'Gene_Skyline.png';
+				    	document.body.appendChild(a);
+				    	a.click();
+				};
+				img.src = url;
+			}
+		});
+		$("#immgen_CGC_uli_rnaseq_save_as_pdf").click(function() { 
+			if (/*@cc_on!@*/false || !!document.documentMode) {
+				$("#AlertModal_IE_save_pdf").modal('show');
+			}
+			else {
+				var svgString = new XMLSerializer().serializeToString(document.getElementById("chart").getElementsByTagName("svg")[0]),
+				    blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}),
+				    url = window.URL.createObjectURL(blob);
+				      
+				var img = d3.select('body').append('img').classed('exportImg', true).node();
+				img.onload = function () {
+					var canvas = document.createElement('canvas'),
+					ctx = canvas.getContext('2d');
+					canvas.width = width + margin.left + margin.right + 50;
+					canvas.height = height + margin.top + margin.bottom + 50;
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+					d3.select('img.exportImg').remove();
+					
+					// create link
+					//var a = document.createElement('a');
+					//a.href = canvas.toDataURL();
+					var imgData = canvas.toDataURL('image/png');
+					var doc = new window.jspdf.jsPDF('l', 'mm', 'letter');
+					doc.addImage(imgData, 'PNG', 0, 10, doc.internal.pageSize.width-10, doc.internal.pageSize.height-10, null, 'NONE');
+					doc.save('Gene_Skyline.pdf');
+					//a.download = 'Gene_Skyline';
+					//a.click();
+				};
+				img.src = url;
+			}
+		});
+		$("#immgen_CGC_uli_rnaseq_print").click(function() { print_div(); });
+		$("#immgen_CGC_uli_rnaseq_email").click(function() { 
+			$("#EmailModal").modal('show');
+		});
+		
+		
+		// IC button handlers
+		$("#immgen_IC_uli_rnaseq_save_expr").click(function() { 
+			var rnaseq_datagroup = $("#rnaseq_datagroup_list").val();
+			var rnaseq_gene = $("#rnaseq_Gene").val();
+			var rnaseq_population_option = $("#rnaseq_population_list label.active input").val();
+			var rnaseq_population;
+			if(rnaseq_population_option=='Select the populations of interest'){
+				rnaseq_population = $("#rnaseq_group_IC").text();
+			}
+			else if(rnaseq_population_option=='Select the populations of interest by cytokine'){
+				rnaseq_population = $("#rnaseq_group_IC_by_cytokine").text();
+			}
+				
+			window.open( 'https://rstats.immgen.org/Skyline/download_expr_table.php?type=rnaseq&id=' + hashtable_synonyms[rnaseq_gene] + '&datagroup=' + rnaseq_datagroup + '&population=' + rnaseq_population + '&key_population=' + rnaseq_population_option );
+		});
+		$("#immgen_IC_uli_rnaseq_save_meta").click(function() { 
+			var rnaseq_datagroup = $("#rnaseq_datagroup_list").val();
+			var rnaseq_gene = $("#rnaseq_Gene").val();
+			var rnaseq_population_option = $("#rnaseq_population_list label.active input").val();
+			var rnaseq_population;
+			if(rnaseq_population_option=='Select the populations of interest'){
+				rnaseq_population = $("#rnaseq_group_IC").text();
+			}
+			else if(rnaseq_population_option=='Select the populations of interest by cytokine'){
+				rnaseq_population = $("#rnaseq_group_IC_by_cytokine").text();
+			}
+				
+			window.open( 'https://rstats.immgen.org/Skyline/download_meta_table.php?type=rnaseq&id=' + rnaseq_gene + '&datagroup=' + rnaseq_datagroup + '&population=' + rnaseq_population + '&key_population=' + rnaseq_population_option );
+		});
+		$("#immgen_IC_uli_rnaseq_save_as_svg").click(function() { 
+			if (/*@cc_on!@*/false || !!document.documentMode) {
+				$("#AlertModal_IE_save_image").modal('show');
+			}
+			else {
+				var svgString = new XMLSerializer().serializeToString(document.getElementById("chart").getElementsByTagName("svg")[0]),
+				blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}),
+				url = window.URL.createObjectURL(blob);
+				
+				var a = document.createElement('a');
+				a.href = url;
+				a.download = 'Gene_Skyline.svg';
+				document.body.appendChild(a);
+				a.click();
+				//submit_download_form("svg");
+			}
+		});
+		$("#immgen_IC_uli_rnaseq_save_as_png").click(function() {
+			if (/*@cc_on!@*/false || !!document.documentMode) {
+				$("#AlertModal_IE_save_image").modal('show');
+			}
+			else {
+				var svgString = new XMLSerializer().serializeToString(document.getElementById("chart").getElementsByTagName("svg")[0]),
+				    blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}),
+				    url = window.URL.createObjectURL(blob);
+				      
+				var img = d3.select('body').append('img').classed('exportImg', true).node();
+				img.onload = function () {
+				 	var canvas = document.createElement('canvas'),
+				    	ctx = canvas.getContext('2d');
+				    	canvas.width = width + margin.left + margin.right + 50;
+				    	canvas.height = height + margin.top + margin.bottom + 50;
+				    	ctx.clearRect(0, 0, canvas.width, canvas.height);
+				    	ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+				    	d3.select('img.exportImg').remove();
+				    	
+				    	// create link
+				    	var a = document.createElement('a');
+				    	a.href = canvas.toDataURL();
+				    	a.download = 'Gene_Skyline.png';
+				    	document.body.appendChild(a);
+				    	a.click();
+				};
+				img.src = url;
+			}
+		});
+		$("#immgen_IC_uli_rnaseq_save_as_pdf").click(function() { 
+			if (/*@cc_on!@*/false || !!document.documentMode) {
+				$("#AlertModal_IE_save_pdf").modal('show');
+			}
+			else {
+				var svgString = new XMLSerializer().serializeToString(document.getElementById("chart").getElementsByTagName("svg")[0]),
+				    blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}),
+				    url = window.URL.createObjectURL(blob);
+				      
+				var img = d3.select('body').append('img').classed('exportImg', true).node();
+				img.onload = function () {
+					var canvas = document.createElement('canvas'),
+					ctx = canvas.getContext('2d');
+					canvas.width = width + margin.left + margin.right + 50;
+					canvas.height = height + margin.top + margin.bottom + 50;
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+					d3.select('img.exportImg').remove();
+					
+					// create link
+					//var a = document.createElement('a');
+					//a.href = canvas.toDataURL();
+					var imgData = canvas.toDataURL('image/png');
+					var doc = new window.jspdf.jsPDF('l', 'mm', 'letter');
+					doc.addImage(imgData, 'PNG', 0, 10, doc.internal.pageSize.width-10, doc.internal.pageSize.height-10, null, 'NONE');
+					doc.save('Gene_Skyline.pdf');
+					//a.download = 'Gene_Skyline';
+					//a.click();
+				};
+				img.src = url;
+			}
+		});
+	$("#immgen_IC_uli_rnaseq_print").click(function() { print_div(); });
+	$("#immgen_IC_uli_rnaseq_email").click(function() { 
+		$("#EmailModal").modal('show');
+	});
+	
+	
+	// iTP button handlers
+	$("#immgen_iTP_uli_rnaseq_save_expr").click(function() { 
+		var rnaseq_datagroup = $("#rnaseq_datagroup_list").val();
+		var rnaseq_gene = $("#rnaseq_Gene").val();
+		var rnaseq_population_option = $("#rnaseq_population_list label.active input").val();
+		var rnaseq_population;
+		if(rnaseq_population_option=='Select the populations of interest'){
+			rnaseq_population = $("#rnaseq_group_iTP").text();
+		}
+			
+		window.open( 'https://rstats.immgen.org/Skyline/download_expr_table.php?type=rnaseq&id=' + hashtable_synonyms[rnaseq_gene] + '&datagroup=' + rnaseq_datagroup + '&population=' + rnaseq_population + '&key_population=' + rnaseq_population_option );
+	});
+	$("#immgen_iTP_uli_rnaseq_save_meta").click(function() { 
+		var rnaseq_datagroup = $("#rnaseq_datagroup_list").val();
+		var rnaseq_gene = $("#rnaseq_Gene").val();
+		var rnaseq_population_option = $("#rnaseq_population_list label.active input").val();
+		var rnaseq_population;
+		if(rnaseq_population_option=='Select the populations of interest'){
+			rnaseq_population = $("#rnaseq_group_iTP").text();
+		}
+			
+		window.open( 'https://rstats.immgen.org/Skyline/download_meta_table.php?type=rnaseq&id=' + rnaseq_gene + '&datagroup=' + rnaseq_datagroup + '&population=' + rnaseq_population + '&key_population=' + rnaseq_population_option );
+	});
+	$("#immgen_iTP_uli_rnaseq_save_as_svg").click(function() { 
+		if (/*@cc_on!@*/false || !!document.documentMode) {
+			$("#AlertModal_IE_save_image").modal('show');
+		}
+		else {
+			var svgString = new XMLSerializer().serializeToString(document.getElementById("chart").getElementsByTagName("svg")[0]),
+			blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}),
+			url = window.URL.createObjectURL(blob);
+			
+			var a = document.createElement('a');
+			a.href = url;
+			a.download = 'Gene_Skyline.svg';
+			document.body.appendChild(a);
+			a.click();
+		}
+	});
+	$("#immgen_iTP_uli_rnaseq_save_as_png").click(function() {
+		if (/*@cc_on!@*/false || !!document.documentMode) {
+			$("#AlertModal_IE_save_image").modal('show');
+		}
+		else {
+			var svgString = new XMLSerializer().serializeToString(document.getElementById("chart").getElementsByTagName("svg")[0]),
+			    blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}),
+			    url = window.URL.createObjectURL(blob);
+			      
+			var img = d3.select('body').append('img').classed('exportImg', true).node();
+			img.onload = function () {
+			 	var canvas = document.createElement('canvas'),
+			    	ctx = canvas.getContext('2d');
+			    	canvas.width = width + margin.left + margin.right + 50;
+			    	canvas.height = height + margin.top + margin.bottom + 50;
+			    	ctx.clearRect(0, 0, canvas.width, canvas.height);
+			    	ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+			    	d3.select('img.exportImg').remove();
+			    	var a = document.createElement('a');
+			    	a.href = canvas.toDataURL();
+			    	a.download = 'Gene_Skyline.png';
+			    	document.body.appendChild(a);
+			    	a.click();
+			};
+			img.src = url;
+		}
+	});
+	$("#immgen_iTP_uli_rnaseq_save_as_pdf").click(function() { 
+		if (/*@cc_on!@*/false || !!document.documentMode) {
+			$("#AlertModal_IE_save_pdf").modal('show');
+		}
+		else {
+			var svgString = new XMLSerializer().serializeToString(document.getElementById("chart").getElementsByTagName("svg")[0]),
+			    blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"}),
+			    url = window.URL.createObjectURL(blob);
+			      
+			var img = d3.select('body').append('img').classed('exportImg', true).node();
+			img.onload = function () {
+				var canvas = document.createElement('canvas'),
+				ctx = canvas.getContext('2d');
+				canvas.width = width + margin.left + margin.right + 50;
+				canvas.height = height + margin.top + margin.bottom + 50;
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+				d3.select('img.exportImg').remove();
+				var imgData = canvas.toDataURL('image/png');
+				var doc = new window.jspdf.jsPDF('l', 'mm', 'letter');
+				doc.addImage(imgData, 'PNG', 0, 10, doc.internal.pageSize.width-10, doc.internal.pageSize.height-10, null, 'NONE');
+				doc.save('Gene_Skyline.pdf');
+			};
+			img.src = url;
+		}
+	});
+	$("#immgen_iTP_uli_rnaseq_print").click(function() { print_div(); });
+	$("#immgen_iTP_uli_rnaseq_email").click(function() { 
+		$("#EmailModal").modal('show');
+	});
+	
+
+	$( '#sendMailForm' ).submit(function ( e ) {
+				e.preventDefault();
+			    	
+				var msg;
+			    	if($('#message-text').val()) { 
+			    		msg = $('#message-text').val(); 
+			    	} else { 
+			    		msg = "Here is a Gene Skyline plot from ImmGen.";
+			    	}
+			    	
+			    	//if($(".modal").is(":visible")){   
+			    	//	$(".modal:visible").find("#close_email_form").trigger('click');
+			    	//}
+			    	//alert(data['message']);
+			    	html2canvas(document.getElementById('chart'), {
+            				width: document.getElementById("chart").offsetWidth + 50,
+            				height: window.innerHeight + 550,
+            				//x: margin.left,
+            				y: margin.top
+            				}).then(function (canvas) {
+						var imagedata = canvas.toDataURL('image/png');
+						var imgdata = imagedata.replace(/^data:image\/(png|jpg);base64,/, "");
+						
+ 						$.ajax({
+ 							type: 'POST',
+ 							url: 'email.php',
+ 							data: { imgdata:imgdata, from_email: $('#from_email').val(), to_email: $('#to_email').val(), msg: msg, gene: $("#rnaseq_Gene").val() },
+ 							success: function (data) {
+							    // For Notification
+			        			    document.getElementById("sendMailForm").reset();
+			        			    var $alertDiv = $(".mailResponse");
+			        			    $alertDiv.show();
+			        			    $alertDiv.find('.alert').removeClass('alert-danger alert-success');
+			        			    $alertDiv.find('.mailResponseText').text("");
+			        			    if(data.error){
+			        			        $alertDiv.find('.alert').addClass('alert-danger');
+			        			        $alertDiv.find('.mailResponseText').text("Failed! Please send the email again.");
+			        			    }else{
+			        			        $alertDiv.find('.alert').addClass('alert-success');
+			        			        $alertDiv.find('.mailResponseText').text("The email is sent successfully!");
+			        			    }
+			        			}
+ 						});
+ 				});
+			});
+			
+    		//});
+    		
+    		
+		////////////////////////////////////////////////////////////////
+		
+      		function submit_download_form(output_format)
+      		{
+			// Get the d3js SVG element
+			var tmp = document.getElementById("chart");
+			var svg = tmp.getElementsByTagName("svg")[0];
+			// Extract the data as SVG text string
+			var svg_xml = (new XMLSerializer).serializeToString(svg);
+                	
+			// Submit the <FORM> to the server.
+			// The result will be an attachment file to download.
+			var form = document.getElementById("svgform");
+			form['output_format'].value = output_format;
+			form['data'].value = svg_xml ;
+			form.submit();
+		}
+		
+		function setDPI(canvas, dpi) {
+			var scaleFactor = dpi / 96;
+			canvas.width = Math.ceil(canvas.width * scaleFactor);
+			canvas.height = Math.ceil(canvas.height * scaleFactor);
+			var ctx=canvas.getContext("2d");
+			ctx.scale(scaleFactor, scaleFactor);
+		}
+		
+		function print_div() {
+			var printContents = document.getElementById("chart").innerHTML;
+			var originalContents = document.body.innerHTML;
+			
+			document.body.innerHTML = printContents;
+			window.print();
+			window.location.reload();
+		}
+		
+		function prepareEmail(to, subject, bodyText) {
+			var form = document.createElement('form');
+			
+			//Set the form attributes 
+			form.setAttribute('method', 'post');
+			form.setAttribute('enctype', 'text/plain');
+			form.setAttribute('action', 'mailto:' + encodeURIComponent(to) + '?Subject=' + encodeURIComponent(subject) + '&Body=' + encodeURIComponent(bodyText ? bodyText : ' '));
+			form.setAttribute('style', 'display:none');
+			
+			//Append the form to the body
+			document.body.appendChild(form);
+		 
+			//Submit the form
+			form.submit();
+			
+			//Clean up
+			document.body.removeChild(form);
+		}
+		
+		function refresh_rnaseq_genelist() {
+			var selected_data_group = $("#rnaseq_datagroup_list").val();
+			
+			if(selected_data_group == 'ImmGen ULI RNASeq' || selected_data_group == 'ImmGen MNP OpenSource' || selected_data_group == 'immgenT Pseudobulk'){
+				if($('#alias_option').is(':checked')){
+					genes_gencode_GRCm38 = new Bloodhound({
+						datumTokenizer: Bloodhound.tokenizers.whitespace,
+						queryTokenizer: Bloodhound.tokenizers.whitespace,
+						local: gene_info_gencode_GRCm38_synonyms
+					});
+					$('#rnaseq_GeneList .typeahead').typeahead('destroy');
+					$('#rnaseq_GeneList .typeahead').typeahead({
+					  hint: true,
+					  highlight: true,
+					  minLength: 1
+					},
+					{
+					  name: 'genes',
+					  limit: 100,
+					  source: genes_gencode_GRCm38
+					});
+				}
+				else {
+					genes_gencode_GRCm38 = new Bloodhound({
+						datumTokenizer: Bloodhound.tokenizers.whitespace,
+						queryTokenizer: Bloodhound.tokenizers.whitespace,
+						local: gene_info_gencode_GRCm38
+					});
+					$('#rnaseq_GeneList .typeahead').typeahead('destroy');
+					$('#rnaseq_GeneList .typeahead').typeahead({
+					  hint: true,
+					  highlight: true,
+					  minLength: 1
+					},
+					{
+					  name: 'genes',
+					  limit: 100,
+					  source: genes_gencode_GRCm38
+					});
+				}
+			}
+			else if(selected_data_group == 'ImmGen CGC'){
+				if($('#alias_option').is(':checked')){
+					genes_gencode_GRCm38_CGC = new Bloodhound({
+						datumTokenizer: Bloodhound.tokenizers.whitespace,
+						queryTokenizer: Bloodhound.tokenizers.whitespace,
+						local: gene_info_gencode_GRCm38_synonyms_CGC
+					});
+					$('#rnaseq_GeneList .typeahead').typeahead('destroy');
+					$('#rnaseq_GeneList .typeahead').typeahead({
+					  hint: true,
+					  highlight: true,
+					  minLength: 1
+					},
+					{
+					  name: 'genes',
+					  limit: 100,
+					  source: genes_gencode_GRCm38_CGC
+					});
+				}
+				else {
+					genes_gencode_GRCm38_CGC = new Bloodhound({
+						datumTokenizer: Bloodhound.tokenizers.whitespace,
+						queryTokenizer: Bloodhound.tokenizers.whitespace,
+						local: gene_info_gencode_GRCm38_CGC
+					});
+					$('#rnaseq_GeneList .typeahead').typeahead('destroy');
+					$('#rnaseq_GeneList .typeahead').typeahead({
+					  hint: true,
+					  highlight: true,
+					  minLength: 1
+					},
+					{
+					  name: 'genes',
+					  limit: 100,
+					  source: genes_gencode_GRCm38_CGC
+					});
+				}
+			}
+			else if(selected_data_group == 'ImmGen Cytokines Inflammatory'){
+				if($('#alias_option').is(':checked')){
+					genes_gencode_GRCm38_IC = new Bloodhound({
+						datumTokenizer: Bloodhound.tokenizers.whitespace,
+						queryTokenizer: Bloodhound.tokenizers.whitespace,
+						local: gene_info_gencode_GRCm38_synonyms_IC
+					});
+					$('#rnaseq_GeneList .typeahead').typeahead('destroy');
+					$('#rnaseq_GeneList .typeahead').typeahead({
+					  hint: true,
+					  highlight: true,
+					  minLength: 1
+					},
+					{
+					  name: 'genes',
+					  limit: 100,
+					  source: genes_gencode_GRCm38_IC
+					});
+				}
+				else {
+					genes_gencode_GRCm38_IC = new Bloodhound({
+						datumTokenizer: Bloodhound.tokenizers.whitespace,
+						queryTokenizer: Bloodhound.tokenizers.whitespace,
+						local: gene_info_gencode_GRCm38_IC
+					});
+					$('#rnaseq_GeneList .typeahead').typeahead('destroy');
+					$('#rnaseq_GeneList .typeahead').typeahead({
+					  hint: true,
+					  highlight: true,
+					  minLength: 1
+					},
+					{
+					  name: 'genes',
+					  limit: 100,
+					  source: genes_gencode_GRCm38_IC
+					});
+				}
+			}
+		}
+		
+		function arrayToCSV(data) {
+		    const csvRows = [];
+		    
+		    // Get headers
+		    //const headers = Object.keys(data[0]);
+		    //csvRows.push(headers.join(','));
+		
+		    // Loop over the rows
+		    for (const row of data) {
+		        //const values = headers.map(header => {
+		        //    const val = row[header];
+		        //    return (typeof val === 'string') ? `"${val.replace(/"/g, '""')}"` : val;
+		        //});
+		        csvRows.push(row);
+		    }
+		
+		    return csvRows.join('\n');
+		}
+		
+		function downloadCSV(data) {
+		    const csvString = arrayToCSV(data);
+		    const blob = new Blob([csvString], { type: 'text/csv' });
+		    const url = URL.createObjectURL(blob);
+		
+		    const a = document.createElement('a');
+		    a.setAttribute('hidden', '');
+		    a.setAttribute('href', url);
+		    a.setAttribute('download', 'Gene_Skyline_ChatGPT_history.txt');
+		    document.body.appendChild(a);
+		    a.click();
+		    document.body.removeChild(a);
+		}
+
+		$(window).scroll(function() {
+		    var height = $(window).scrollTop();
+		    if (height > 100) {
+		        $('#back2Top').fadeIn();
+		    } else {
+		        $('#back2Top').fadeOut();
+		    }
+		});
+		
+		$(document).ready(function() {
+			$("#back2Top").click(function(event) {
+		        event.preventDefault();
+		        $("html, body").animate({ scrollTop: 0 }, "slow");
+		        return false;
+		    });	
+		});
+		
+		//$(document).mouseup(function(e) { 
+		//    var container = $("#follow_up_list");
+		//    if (!container.is(e.target) && container.has(e.target).length === 0) { 
+		//        $('.active').removeClass('active'); 
+		//    } 
+		//}); 
+		
+				
+	</script>
+  
+</body>
+</html>
